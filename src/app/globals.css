@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f8fa;
+  --surface: #ffffff;
+  --foreground: #14181f;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --accent: #d5541a;
+  --accent-foreground: #ffffff;
+  --win: #15803d;
+  --win-bg: #dcfce7;
+  --loss: #b91c1c;
+  --loss-bg: #fee2e2;
+  --draw: #6b7280;
+  --draw-bg: #f3f4f6;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-win: var(--win);
+  --color-win-bg: var(--win-bg);
+  --color-loss: var(--loss);
+  --color-loss-bg: var(--loss-bg);
+  --color-draw: var(--draw);
+  --color-draw-bg: var(--draw-bg);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0b0d12;
+    --surface: #14181f;
+    --foreground: #f3f4f6;
+    --muted: #9ca3af;
+    --border: #262b34;
+    --accent: #e8703a;
+    --accent-foreground: #14181f;
+    --win: #4ade80;
+    --win-bg: #14291d;
+    --loss: #f87171;
+    --loss-bg: #2d1414;
+    --draw: #9ca3af;
+    --draw-bg: #1f2329;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+table {
+  font-variant-numeric: tabular-nums;
+}

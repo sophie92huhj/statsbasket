@@ -1,0 +1,215 @@
+// StatsBasket — schéma de données
+//
+// Principe central : on ne stocke QUE des statistiques brutes (tirs, rebonds,
+// passes, etc.). Toute statistique dérivée (points, %, eFG%, TS%, /40min...)
+// est calculée à la volée par le moteur de calcul (src/lib/stats), jamais
+// stockée en base. Voir CLAUDE.md.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Référentiels
+// ---------------------------------------------------------------------------
+
+model Season {
+  id        String   @id @default(cuid())
+  label     String   // ex: "2025-2026"
+  startDate DateTime
+  endDate   DateTime
+  createdAt DateTime @default(now())
+
+  teamSeasons TeamSeason[]
+  matches     Match[]
+
+  @@unique([label])
+}
+
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  isOwnTeam Boolean  @default(false) // true = notre équipe suivie ; false = adversaire connu
+  createdAt DateTime @default(now())
+
+  teamSeasons     TeamSeason[]
+  matchesAsHome   Match[]      @relation("HomeTeam")
+  matchesAsAway   Match[]      @relation("AwayTeam")
+  teamMatchStats  TeamMatchStat[]
+
+  @@unique([name])
+}
+
+// Rattache une équipe à une saison (catégorie, championnat, coach) sans dupliquer l'équipe.
+model TeamSeason {
+  id         String  @id @default(cuid())
+  teamId     String
+  seasonId   String
+  category   String? // ex: "U18F", "Séniors F"
+  league     String? // championnat / division
+  coachName  String?
+
+  team     Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  season   Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  rosterEntries PlayerTeamSeason[]
+
+  @@unique([teamId, seasonId])
+}
+
+model Player {
+  id         String   @id @default(cuid())
+  firstName  String
+  lastName   String
+  birthDate  DateTime?
+  createdAt  DateTime @default(now())
+
+  rosterEntries    PlayerTeamSeason[]
+  playerMatchStats PlayerMatchStat[]
+
+  @@index([lastName, firstName])
+}
+
+// Rattache une joueuse à une équipe pour une saison donnée : numéro, poste, statut.
+// Permet transferts/changements de numéro d'une saison à l'autre sans dupliquer la joueuse.
+model PlayerTeamSeason {
+  id           String  @id @default(cuid())
+  playerId     String
+  teamSeasonId String
+  jerseyNumber Int?
+  position     Position?
+  status       PlayerStatus @default(ACTIVE)
+
+  player     Player     @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  teamSeason TeamSeason @relation(fields: [teamSeasonId], references: [id], onDelete: Cascade)
+
+  @@unique([playerId, teamSeasonId])
+}
+
+enum Position {
+  MENEUSE
+  ARRIERE
+  AILIERE
+  AILIERE_FORTE
+  PIVOT
+}
+
+enum PlayerStatus {
+  ACTIVE
+  BLESSEE
+  SUSPENDUE
+  PARTIE
+}
+
+// ---------------------------------------------------------------------------
+// Matchs
+// ---------------------------------------------------------------------------
+
+model Match {
+  id           String    @id @default(cuid())
+  seasonId     String
+  date         DateTime
+  competition  String?   // ex: "Championnat", "Coupe"
+  matchday     String?   // journée éventuelle
+  venue        String?
+  notes        String?
+  isHome       Boolean   // notre équipe reçoit ou non
+  homeTeamId   String
+  awayTeamId   String
+  homeScore    Int?      // null tant que non saisi
+  awayScore    Int?
+  overtimeCount Int      @default(0) // nombre de prolongations
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  season   Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  homeTeam Team   @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam Team   @relation("AwayTeam", fields: [awayTeamId], references: [id])
+
+  playerStats PlayerMatchStat[]
+  teamStats   TeamMatchStat[]
+
+  @@index([seasonId, date])
+  @@index([homeTeamId])
+  @@index([awayTeamId])
+}
+
+// Statistiques individuelles d'une joueuse pour un match.
+// Tous les compteurs sont nullable : null = non renseigné, 0 = renseigné et nul.
+// dnp = n'a pas joué (Did Not Play) ; dans ce cas les autres champs restent null.
+model PlayerMatchStat {
+  id       String @id @default(cuid())
+  matchId  String
+  playerId String
+
+  dnp             Boolean @default(false)
+  secondsPlayed   Int?    // temps de jeu total en secondes (ex: 28:32 -> 1712)
+
+  fg2Made Int?
+  fg2Att  Int?
+  fg3Made Int?
+  fg3Att  Int?
+  ftMade  Int?
+  ftAtt   Int?
+
+  reboundsOff Int?
+  reboundsDef Int?
+
+  assists       Int?
+  steals        Int?
+  turnovers     Int?
+  blocks        Int?
+  foulsCommitted Int?
+  foulsDrawn    Int?
+
+  // Points officiels éventuels (feuille de match), pour contrôle de cohérence
+  // face aux points recalculés à partir des tirs. Ne pas utiliser pour l'affichage.
+  officialPoints Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  match  Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  player Player @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, playerId])
+  @@index([playerId])
+}
+
+// Statistiques d'équipe pour un match (les nôtres ET celles de l'adversaire quand connues),
+// saisies indépendamment de la somme des lignes individuelles (peuvent différer, ex: adversaire
+// dont on n'a que la feuille officielle globale).
+model TeamMatchStat {
+  id      String @id @default(cuid())
+  matchId String
+  teamId  String
+
+  fg2Made Int?
+  fg2Att  Int?
+  fg3Made Int?
+  fg3Att  Int?
+  ftMade  Int?
+  ftAtt   Int?
+
+  reboundsOff Int?
+  reboundsDef Int?
+
+  assists        Int?
+  steals         Int?
+  turnovers      Int?
+  blocks         Int?
+  foulsCommitted Int?
+  foulsDrawn     Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  team  Team  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, teamId])
+}
