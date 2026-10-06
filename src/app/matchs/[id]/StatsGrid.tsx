@@ -457,6 +457,7 @@ export function StatsGrid({
             <thead>
               <tr className="border-b border-border text-left text-xs font-semibold uppercase tracking-wide text-muted">
                 <th className="sticky left-0 z-10 bg-surface px-3 py-3">Joueuse</th>
+                <th className="px-3 py-3">Nom</th>
                 <th className="px-3 py-3 text-center">5 de départ</th>
                 <th className="px-3 py-3 text-center">MIN</th>
                 <th className="px-3 py-3 text-center">PTS</th>
@@ -487,6 +488,7 @@ export function StatsGrid({
                         <span>{player.firstName}</span>
                       </Link>
                     </td>
+                    <td className="px-3 py-2.5 whitespace-nowrap text-muted">{player.lastName}</td>
                     <td className="px-3 py-2.5 text-center">{row.starter ? "✓" : ""}</td>
                     <td className="px-3 py-2.5 text-center tabular-nums">
                       {formatSecondsAsClock(parseMinutesSeconds(row.minutesInput || ""))}
@@ -526,6 +528,7 @@ export function StatsGrid({
                 return (
                   <tr className="border-t-2 border-border bg-background font-semibold">
                     <td className="sticky left-0 z-10 bg-background px-3 py-2.5 whitespace-nowrap">Total équipe</td>
+                    <td className="px-3 py-2.5">—</td>
                     <td className="px-3 py-2.5 text-center">—</td>
                     <td className="px-3 py-2.5 text-center tabular-nums">
                       {formatSecondsAsClock(totals.totalSeconds)}
