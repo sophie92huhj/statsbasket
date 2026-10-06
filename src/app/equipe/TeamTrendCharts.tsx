@@ -71,10 +71,10 @@ export function TeamTrendCharts({
           <Card>
             <h2 className="mb-3 text-sm font-semibold">Évolution du différentiel</h2>
             <ResponsiveContainer width="100%" height={260}>
-              <LineChart data={trendData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+              <LineChart data={trendData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid stroke={CHART_GRID} vertical={false} />
                 <XAxis dataKey="match" tick={{ fontSize: 12, fill: CHART_AXIS }} tickLine={false} axisLine={{ stroke: CHART_GRID }} />
-                <YAxis tick={{ fontSize: 12, fill: CHART_AXIS }} tickLine={false} axisLine={false} width={32} />
+                <YAxis tick={{ fontSize: 12, fill: CHART_AXIS }} tickLine={false} axisLine={false} width={40} />
                 <ReferenceLine y={0} stroke={CHART_AXIS} />
                 <Tooltip content={ChartTooltip} />
                 <Line type="monotone" dataKey="diff" name="Différentiel" stroke={CHART_COLORS[0]} strokeWidth={2} dot={{ r: 3 }} />
@@ -85,14 +85,14 @@ export function TeamTrendCharts({
           <Card>
             <h2 className="mb-3 text-sm font-semibold">Évolution de l&apos;adresse</h2>
             <ResponsiveContainer width="100%" height={260}>
-              <LineChart data={trendData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+              <LineChart data={trendData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid stroke={CHART_GRID} vertical={false} />
                 <XAxis dataKey="match" tick={{ fontSize: 12, fill: CHART_AXIS }} tickLine={false} axisLine={{ stroke: CHART_GRID }} />
                 <YAxis
                   tick={{ fontSize: 12, fill: CHART_AXIS }}
                   tickLine={false}
                   axisLine={false}
-                  width={40}
+                  width={48}
                   domain={[0, 100]}
                   unit="%"
                 />
@@ -111,10 +111,10 @@ export function TeamTrendCharts({
         <Card className="lg:col-span-2">
           <h2 className="mb-3 text-sm font-semibold">Points par joueuse (saison)</h2>
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={barData} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+            <BarChart data={barData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid stroke={CHART_GRID} vertical={false} />
               <XAxis dataKey="joueuse" tick={{ fontSize: 11, fill: CHART_AXIS }} tickLine={false} axisLine={{ stroke: CHART_GRID }} />
-              <YAxis tick={{ fontSize: 12, fill: CHART_AXIS }} tickLine={false} axisLine={false} width={32} />
+              <YAxis tick={{ fontSize: 12, fill: CHART_AXIS }} tickLine={false} axisLine={false} width={40} />
               <Tooltip content={ChartTooltip} cursor={{ fill: "var(--background)" }} />
               <Bar dataKey="points" name="Points" fill={CHART_COLORS[0]} radius={[4, 4, 0, 0]} />
             </BarChart>

@@ -7,15 +7,6 @@ import { Button, Label, Select } from "@/components/ui/Form";
 import { apiFetch } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/AuthContext";
 
-const POSITIONS = [
-  { value: "", label: "—" },
-  { value: "POSTE_1", label: "1" },
-  { value: "POSTE_2", label: "2" },
-  { value: "POSTE_3", label: "3" },
-  { value: "POSTE_4", label: "4" },
-  { value: "POSTE_5", label: "5" },
-];
-
 interface TeamSeasonOption {
   id: string;
   teamName: string;
@@ -26,7 +17,6 @@ export function RosterForm({ playerId, teamSeasons }: { playerId: string; teamSe
   const router = useRouter();
   const { isAdmin } = useAuth();
   const [teamSeasonId, setTeamSeasonId] = useState(teamSeasons[0]?.id ?? "");
-  const [position, setPosition] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -40,10 +30,8 @@ export function RosterForm({ playerId, teamSeasons }: { playerId: string; teamSe
         body: JSON.stringify({
           playerId,
           teamSeasonId,
-          position: position || null,
         }),
       });
-      setPosition("");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur inconnue");
@@ -69,16 +57,6 @@ export function RosterForm({ playerId, teamSeasons }: { playerId: string; teamSe
               {teamSeasons.map((ts) => (
                 <option key={ts.id} value={ts.id}>
                   {ts.teamName} — {ts.seasonLabel}
-                </option>
-              ))}
-            </Select>
-          </div>
-          <div>
-            <Label>Poste</Label>
-            <Select value={position} onChange={(e) => setPosition(e.target.value)}>
-              {POSITIONS.map((p) => (
-                <option key={p.value} value={p.value}>
-                  {p.label}
                 </option>
               ))}
             </Select>

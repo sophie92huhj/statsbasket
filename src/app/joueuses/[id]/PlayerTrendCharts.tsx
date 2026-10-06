@@ -33,10 +33,10 @@ export function PlayerTrendCharts({ lines }: { lines: PlayerMatchInput[] }) {
       <Card>
         <h2 className="mb-3 text-sm font-semibold">Évolution par match</h2>
         <ResponsiveContainer width="100%" height={260}>
-          <LineChart data={data} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+          <LineChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid stroke={CHART_GRID} vertical={false} />
             <XAxis dataKey="match" tick={{ fontSize: 12, fill: CHART_AXIS }} tickLine={false} axisLine={{ stroke: CHART_GRID }} />
-            <YAxis tick={{ fontSize: 12, fill: CHART_AXIS }} tickLine={false} axisLine={false} width={32} />
+            <YAxis tick={{ fontSize: 12, fill: CHART_AXIS }} tickLine={false} axisLine={false} width={40} />
             <Tooltip content={ChartTooltip} />
             <Legend wrapperStyle={{ fontSize: 12 }} />
             <Line type="monotone" dataKey="points" name="Points" stroke={CHART_COLORS[0]} strokeWidth={2} dot={{ r: 3 }} />
@@ -49,14 +49,14 @@ export function PlayerTrendCharts({ lines }: { lines: PlayerMatchInput[] }) {
       <Card>
         <h2 className="mb-3 text-sm font-semibold">Évolution de l&apos;adresse</h2>
         <ResponsiveContainer width="100%" height={260}>
-          <LineChart data={data} margin={{ top: 4, right: 8, left: -16, bottom: 0 }}>
+          <LineChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
             <CartesianGrid stroke={CHART_GRID} vertical={false} />
             <XAxis dataKey="match" tick={{ fontSize: 12, fill: CHART_AXIS }} tickLine={false} axisLine={{ stroke: CHART_GRID }} />
             <YAxis
               tick={{ fontSize: 12, fill: CHART_AXIS }}
               tickLine={false}
               axisLine={false}
-              width={40}
+              width={48}
               domain={[0, 100]}
               unit="%"
             />

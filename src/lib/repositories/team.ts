@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db/client";
-import type { Position, PlayerStatus } from "@prisma/client";
+import type { PlayerStatus } from "@prisma/client";
 
 export interface CreateTeamInput {
   name: string;
@@ -71,13 +71,12 @@ export function deleteTeamSeason(id: string) {
 }
 
 // ---------------------------------------------------------------------------
-// Roster — rattachement joueuse/équipe-saison (numéro, poste, statut)
+// Roster — rattachement joueuse/équipe-saison (numéro, statut)
 // ---------------------------------------------------------------------------
 
 export interface UpsertRosterEntryInput {
   playerId: string;
   teamSeasonId: string;
-  position?: Position | null;
   status?: PlayerStatus;
 }
 

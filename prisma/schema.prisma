@@ -74,28 +74,18 @@ model Player {
   @@index([lastName, firstName])
 }
 
-// Rattache une joueuse à une équipe pour une saison donnée : poste, statut.
+// Rattache une joueuse à une équipe pour une saison donnée : statut.
 // Permet transferts d'une saison à l'autre sans dupliquer la joueuse.
 model PlayerTeamSeason {
   id           String  @id @default(cuid())
   playerId     String
   teamSeasonId String
-  position     Position?
   status       PlayerStatus @default(ACTIVE)
 
   player     Player     @relation(fields: [playerId], references: [id], onDelete: Cascade)
   teamSeason TeamSeason @relation(fields: [teamSeasonId], references: [id], onDelete: Cascade)
 
   @@unique([playerId, teamSeasonId])
-}
-
-// Poste par numéro (1 = meneuse, 2 = arrière, 3 = ailière, 4 = ailière forte, 5 = pivot).
-enum Position {
-  POSTE_1
-  POSTE_2
-  POSTE_3
-  POSTE_4
-  POSTE_5
 }
 
 enum PlayerStatus {

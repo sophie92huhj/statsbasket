@@ -2,13 +2,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { removeRosterEntry, upsertRosterEntry } from "@/lib/repositories/team";
 
-const POSITIONS = ["POSTE_1", "POSTE_2", "POSTE_3", "POSTE_4", "POSTE_5"] as const;
 const STATUSES = ["ACTIVE", "BLESSEE", "SUSPENDUE", "PARTIE"] as const;
 
 const upsertSchema = z.object({
   playerId: z.string().min(1),
   teamSeasonId: z.string().min(1),
-  position: z.enum(POSITIONS).nullish(),
   status: z.enum(STATUSES).optional(),
 });
 
