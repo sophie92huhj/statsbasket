@@ -195,8 +195,8 @@ export async function generateMatchStatsPdf(input: MatchStatsPdfInput): Promise<
   y -= 18;
 
   const sortedPlayers = sortByJerseyThenName(input.players);
-  const headerRowHeight = 22;
-  const rowHeight = 18;
+  const headerRowHeight = 18;
+  const rowHeight = 15;
 
   function drawHeaderRow(startY: number): number {
     page.drawRectangle({
@@ -208,12 +208,12 @@ export async function generateMatchStatsPdf(input: MatchStatsPdfInput): Promise<
     });
     let x = tableX;
     for (const col of COLUMNS) {
-      const textWidth = boldFont.widthOfTextAtSize(col.label, 8);
+      const textWidth = boldFont.widthOfTextAtSize(col.label, 7.5);
       const textX = col.align === "center" ? x + (col.width - textWidth) / 2 : x + 6;
       page.drawText(col.label, {
         x: textX,
-        y: startY - headerRowHeight / 2 - 3,
-        size: 8,
+        y: startY - headerRowHeight / 2 - 2.5,
+        size: 7.5,
         font: boldFont,
         color: headerText,
       });
@@ -232,13 +232,13 @@ export async function generateMatchStatsPdf(input: MatchStatsPdfInput): Promise<
     for (const col of COLUMNS) {
       const isEval = col.key === "eval";
       const text = values[col.key];
-      const size = 8.5;
+      const size = 7.5;
       const cellFont = isEval ? boldFont : rowFont;
       const textWidth = cellFont.widthOfTextAtSize(text, size);
       const textX = col.align === "center" ? x + (col.width - textWidth) / 2 : x + 6;
       page.drawText(text, {
         x: textX,
-        y: startY - rowHeight / 2 - 3,
+        y: startY - rowHeight / 2 - 2.5,
         size,
         font: cellFont,
         color: isEval ? evalRed : black,
@@ -316,13 +316,13 @@ export async function generateMatchStatsPdf(input: MatchStatsPdfInput): Promise<
   // titre → tuiles) et les tuiles s'étirent pour occuper la hauteur de page restante.
   const teamStats = input.teamStats ?? [];
   if (teamStats.length > 0) {
-    const sectionGap = 28;
+    const sectionGap = 20;
     const tilesPerRow = 6;
-    const tileGap = 18;
+    const tileGap = 12;
     const tileWidth = (tableWidth - tileGap * (tilesPerRow - 1)) / tilesPerRow;
     const tileRows = Math.ceil(teamStats.length / tilesPerRow);
-    const sectionTitleHeight = 26;
-    const minTileHeight = 70;
+    const sectionTitleHeight = 22;
+    const minTileHeight = 58;
     const minSectionHeight = sectionGap * 2 + sectionTitleHeight + tileRows * (minTileHeight + tileGap);
 
     if (y - minSectionHeight < margin) {
