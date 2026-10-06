@@ -18,7 +18,7 @@ export default async function ParametresPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold">Paramètres</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-wide">Paramètres</h1>
         <p className="text-sm text-muted">Gérer les saisons et les équipes suivies.</p>
       </div>
 

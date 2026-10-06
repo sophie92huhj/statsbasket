@@ -9,7 +9,7 @@ export default async function PlayersPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold">Joueuses</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-wide">Joueuses</h1>
         <p className="text-sm text-muted">Effectif suivi, toutes équipes et saisons confondues.</p>
       </div>
 

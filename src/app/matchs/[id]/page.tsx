@@ -119,28 +119,38 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-semibold">vs {opponent.name}</h1>
-          <p className="text-sm text-muted">
-            {formatDate(match.date)} {match.competition ? `· ${match.competition}` : ""} · {match.season.label}
-          </p>
+      <div className="overflow-hidden rounded-xl border border-border bg-surface">
+        <div className="flex flex-wrap items-start justify-between gap-4 p-4">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted">
+              {formatDate(match.date)} {match.competition ? `· ${match.competition}` : ""} · {match.season.label}
+            </p>
+            <h1 className="font-display text-3xl font-semibold tracking-wide">vs {opponent.name}</h1>
+          </div>
+          <div className="flex items-center gap-3">
+            <a
+              href={`/api/matches/${match.id}/export-pdf`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium transition-colors hover:bg-background"
+            >
+              Exporter en PDF
+            </a>
+            <OutcomeBadge outcome={outcome} />
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <a
-            href={`/api/matches/${match.id}/export-pdf`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium hover:bg-background"
-          >
-            Exporter en PDF
-          </a>
-          <OutcomeBadge outcome={outcome} />
+        <div className="flex items-center justify-center gap-4 border-t border-border bg-background/60 py-5">
+          <span className="font-display text-5xl font-bold tabular-nums tracking-tight">
+            {match.homeScore ?? "—"}
+          </span>
+          <span className="font-display text-2xl font-medium text-muted">–</span>
+          <span className="font-display text-5xl font-bold tabular-nums tracking-tight">
+            {match.awayScore ?? "—"}
+          </span>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-        <KpiCard label="Score" value={`${match.homeScore ?? "—"} – ${match.awayScore ?? "—"}`} />
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <KpiCard
           label="Différentiel"
           value={diff !== null ? (diff > 0 ? `+${diff}` : diff) : "—"}

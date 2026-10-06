@@ -56,7 +56,7 @@ export default async function TeamPage({
     return (
       <div className="flex flex-col gap-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <h1 className="text-xl font-semibold">{ownTeam.name}</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-wide">{ownTeam.name}</h1>
           <SeasonSelector seasons={seasons} currentSeasonId={seasonFilter} />
         </div>
         <Card>
@@ -71,7 +71,7 @@ export default async function TeamPage({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <h1 className="text-xl font-semibold">{ownTeam.name}</h1>
+        <h1 className="font-display text-3xl font-semibold tracking-wide">{ownTeam.name}</h1>
         <SeasonSelector seasons={seasons} currentSeasonId={seasonFilter} />
       </div>
 

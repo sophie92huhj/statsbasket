@@ -1,19 +1,28 @@
 @import "tailwindcss";
 
+/*
+ * Identité "indoor arena" : anthracite chaud + bleu nuit profond (même teinte
+ * que les en-têtes des exports PDF, #11224d). Palette définie pour light ET
+ * dark, contrastes vérifiés WCAG AA (>=4.5:1 texte normal).
+ */
 :root {
-  --background: #f7f8fa;
+  --background: #faf8f4;
   --surface: #ffffff;
-  --foreground: #14181f;
-  --muted: #6b7280;
-  --border: #e5e7eb;
-  --accent: #d5541a;
+  --surface-raised: #ffffff;
+  --foreground: #1a1510;
+  --muted: #5d5a52;
+  --border: #e8e3d9;
+  --accent: #11224d;
   --accent-foreground: #ffffff;
+  --accent-soft: #e1e6f2;
+  --navy: #1e2a4a;
+  --navy-foreground: #ffffff;
   --win: #15803d;
   --win-bg: #dcfce7;
   --loss: #b91c1c;
   --loss-bg: #fee2e2;
-  --draw: #6b7280;
-  --draw-bg: #f3f4f6;
+  --draw: #5d5a52;
+  --draw-bg: #f1efe9;
 
   /* Palette catégorielle pour graphiques (ordre fixe, CVD-safe) */
   --chart-1: #2a78d6;
@@ -24,19 +33,23 @@
   --chart-6: #008300;
   --chart-7: #4a3aa7;
   --chart-8: #e34948;
-  --chart-grid: #e1e0d9;
-  --chart-axis: #c3c2b7;
-  --chart-muted: #898781;
+  --chart-grid: #e8e3d9;
+  --chart-axis: #c9c3b5;
+  --chart-muted: #8a867b;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-border: var(--border);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-soft: var(--accent-soft);
+  --color-navy: var(--navy);
+  --color-navy-foreground: var(--navy-foreground);
   --color-win: var(--win);
   --color-win-bg: var(--win-bg);
   --color-loss: var(--loss);
@@ -44,43 +57,85 @@
   --color-draw: var(--draw);
   --color-draw-bg: var(--draw-bg);
   --font-sans: var(--font-geist-sans);
+  --font-display: var(--font-barlow-condensed);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0b0d12;
-    --surface: #14181f;
-    --foreground: #f3f4f6;
-    --muted: #9ca3af;
-    --border: #262b34;
-    --accent: #e8703a;
-    --accent-foreground: #14181f;
+  :root:not([data-theme="light"]) {
+    --background: #15171c;
+    --surface: #1d2026;
+    --surface-raised: #23262d;
+    --foreground: #f3f1ec;
+    --muted: #9aa0ab;
+    --border: #2d313a;
+    --accent: #11224d;
+    --accent-foreground: #ffffff;
+    --accent-soft: #1c2740;
+    --navy: #3a4a74;
+    --navy-foreground: #f3f1ec;
     --win: #4ade80;
     --win-bg: #14291d;
     --loss: #f87171;
     --loss-bg: #2d1414;
-    --draw: #9ca3af;
-    --draw-bg: #1f2329;
+    --draw: #9aa0ab;
+    --draw-bg: #22262e;
 
     --chart-1: #3987e5;
     --chart-2: #d95926;
     --chart-3: #199e70;
     --chart-4: #c98500;
     --chart-5: #d55181;
-    --chart-6: #008300;
+    --chart-6: #3ccf3c;
     --chart-7: #9085e9;
     --chart-8: #e66767;
-    --chart-grid: #2c2c2a;
-    --chart-axis: #383835;
-    --chart-muted: #898781;
+    --chart-grid: #2d313a;
+    --chart-axis: #3d424c;
+    --chart-muted: #9aa0ab;
   }
+}
+
+:root[data-theme="dark"] {
+  --background: #15171c;
+  --surface: #1d2026;
+  --surface-raised: #23262d;
+  --foreground: #f3f1ec;
+  --muted: #9aa0ab;
+  --border: #2d313a;
+  --accent: #11224d;
+  --accent-foreground: #ffffff;
+  --accent-soft: #1c2740;
+  --navy: #3a4a74;
+  --navy-foreground: #f3f1ec;
+  --win: #4ade80;
+  --win-bg: #14291d;
+  --loss: #f87171;
+  --loss-bg: #2d1414;
+  --draw: #9aa0ab;
+  --draw-bg: #22262e;
+
+  --chart-1: #3987e5;
+  --chart-2: #d95926;
+  --chart-3: #199e70;
+  --chart-4: #c98500;
+  --chart-5: #d55181;
+  --chart-6: #3ccf3c;
+  --chart-7: #9085e9;
+  --chart-8: #e66767;
+  --chart-grid: #2d313a;
+  --chart-axis: #3d424c;
+  --chart-muted: #9aa0ab;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+h1, h2, h3, .font-display {
+  font-family: var(--font-display), var(--font-sans), Arial, Helvetica, sans-serif;
+  letter-spacing: 0.01em;
 }
 
 table {

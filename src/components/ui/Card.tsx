@@ -3,7 +3,12 @@ import clsx from "clsx";
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={clsx("rounded-xl border border-border bg-surface p-4 shadow-sm", className)}>
+    <div
+      className={clsx(
+        "rounded-xl border border-border bg-surface p-4 shadow-sm shadow-black/[0.03] transition-colors",
+        className,
+      )}
+    >
       {children}
     </div>
   );
@@ -22,11 +27,19 @@ export function KpiCard({
   status?: "success" | "danger";
 }) {
   return (
-    <Card className="flex flex-col gap-1">
+    <Card className="group relative flex flex-col gap-1 overflow-hidden">
+      <span
+        className={clsx(
+          "absolute inset-x-0 top-0 h-0.5 rounded-t-xl",
+          status === "success" && "bg-win",
+          status === "danger" && "bg-loss",
+          !status && "bg-accent/70",
+        )}
+      />
       <span className="text-xs font-medium uppercase tracking-wide text-muted">{label}</span>
       <span
         className={clsx(
-          "text-2xl font-semibold tabular-nums",
+          "font-display text-3xl font-semibold leading-none tabular-nums",
           status === "success" && "text-win",
           status === "danger" && "text-loss",
         )}

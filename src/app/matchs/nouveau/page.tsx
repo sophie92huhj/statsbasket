@@ -11,7 +11,7 @@ export default async function NewMatchPage() {
     <AdminOnly>
       <div className="flex flex-col gap-6">
         <div>
-          <h1 className="text-xl font-semibold">Nouveau match</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-wide">Nouveau match</h1>
           <p className="text-sm text-muted">Enregistrer un match. Les statistiques se saisissent ensuite.</p>
         </div>
 

@@ -1,10 +1,8 @@
-import Link from "next/link";
 import { listMatches } from "@/lib/repositories/match";
 import { computeMatchOutcome, computePointDifferential } from "@/lib/repositories/match";
 import { Card } from "@/components/ui/Card";
-import { OutcomeBadge } from "@/components/ui/Badge";
-import { formatNumber } from "@/lib/stats/format";
 import { NewMatchButton } from "./NewMatchButton";
+import { MatchRow } from "./MatchRow";
 
 function formatDate(date: Date): string {
   return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(date);
@@ -17,7 +15,7 @@ export default async function MatchesPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold">Matchs</h1>
+          <h1 className="font-display text-3xl font-semibold tracking-wide">Matchs</h1>
           <p className="text-sm text-muted">Historique des matchs, toutes saisons.</p>
         </div>
         <NewMatchButton />
@@ -36,7 +34,7 @@ export default async function MatchesPage() {
             </tr>
           </thead>
           <tbody>
-            {matches.map((match) => {
+            {matches.map((match, index) => {
               const ownScore = match.isHome ? match.homeScore : match.awayScore;
               const opponentScore = match.isHome ? match.awayScore : match.homeScore;
               const opponent = match.isHome ? match.awayTeam : match.homeTeam;
@@ -44,24 +42,18 @@ export default async function MatchesPage() {
               const diff = computePointDifferential(ownScore, opponentScore);
 
               return (
-                <tr key={match.id} className="border-b border-border last:border-0 hover:bg-background">
-                  <td className="px-4 py-2">
-                    <Link href={`/matchs/${match.id}`} className="font-medium hover:underline">
-                      {formatDate(match.date)}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-2">{opponent.name}</td>
-                  <td className="px-4 py-2 text-muted">{match.isHome ? "Domicile" : "Extérieur"}</td>
-                  <td className="px-4 py-2 tabular-nums">
-                    {match.homeScore ?? "—"} – {match.awayScore ?? "—"}
-                  </td>
-                  <td className="px-4 py-2 tabular-nums">
-                    {diff !== null ? (diff > 0 ? `+${diff}` : formatNumber(diff)) : "—"}
-                  </td>
-                  <td className="px-4 py-2">
-                    <OutcomeBadge outcome={outcome} />
-                  </td>
-                </tr>
+                <MatchRow
+                  key={match.id}
+                  matchId={match.id}
+                  date={formatDate(match.date)}
+                  opponentName={opponent.name}
+                  location={match.isHome ? "Domicile" : "Extérieur"}
+                  homeScore={match.homeScore}
+                  awayScore={match.awayScore}
+                  diff={diff}
+                  outcome={outcome}
+                  zebra={index % 2 === 1}
+                />
               );
             })}
             {matches.length === 0 && (
