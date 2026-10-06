@@ -66,7 +66,7 @@ export default async function Home() {
       {summary.gamesPlayed === 0 ? (
         <p className="text-sm text-muted">
           Aucun match avec score renseigné. Consultez les{" "}
-          <Link href="/matchs" className="text-accent hover:underline">
+          <Link href="/matchs" className="text-accent-text hover:underline">
             matchs
           </Link>{" "}
           pour saisir vos statistiques.

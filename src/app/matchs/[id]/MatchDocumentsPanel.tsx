@@ -69,7 +69,7 @@ export function MatchDocumentsPanel({ matchId, documents }: { matchId: string; d
                 href={`/api/matches/${matchId}/documents/${doc.id}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium text-accent hover:underline break-all"
+                className="font-medium text-accent-text hover:underline break-all"
               >
                 {doc.fileName}
               </a>

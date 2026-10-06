@@ -132,7 +132,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
               href={`/api/matches/${match.id}/export-pdf`}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium transition-colors hover:bg-background"
+              className="rounded-md border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-accent-soft"
             >
               Exporter en PDF
             </a>

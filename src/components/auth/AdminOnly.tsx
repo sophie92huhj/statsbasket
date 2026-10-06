@@ -19,7 +19,7 @@ export function AdminOnly({ children }: { children: ReactNode }) {
         <h1 className="text-lg font-semibold">Accès réservé</h1>
         <p className="text-sm text-muted">
           Cette page nécessite le mode admin. Activez-le depuis{" "}
-          <Link href="/parametres" className="text-accent hover:underline">
+          <Link href="/parametres" className="text-accent-text hover:underline">
             Paramètres
           </Link>
           .

@@ -48,7 +48,7 @@ export function TeamsPanel({ teams }: { teams: Team[] }) {
           <li key={team.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border px-3 py-2 text-sm">
             <div className="flex items-center gap-2">
               <span className="font-medium">{team.name}</span>
-              {team.isOwnTeam && <Badge className="bg-accent/10 text-accent">Notre équipe</Badge>}
+              {team.isOwnTeam && <Badge className="bg-accent-soft text-accent-text">Notre équipe</Badge>}
             </div>
             {isAdmin && (
               <Button variant="danger" onClick={() => handleDelete(team.id)} type="button">
