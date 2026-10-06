@@ -456,7 +456,8 @@ export function StatsGrid({
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-left text-xs font-semibold uppercase tracking-wide text-muted">
-                <th className="sticky left-0 z-10 w-36 bg-surface px-3 py-3">Joueuse</th>
+                <th className="sticky left-0 z-10 w-14 bg-surface px-3 py-3 text-center">N°</th>
+                <th className="px-3 py-3">Joueuse</th>
                 <th className="px-3 py-3 text-center">5 de départ</th>
                 <th className="px-3 py-3 text-center">MIN</th>
                 <th className="px-3 py-3 text-center">PTS</th>
@@ -481,18 +482,12 @@ export function StatsGrid({
                 const derived = derivedFor(row);
                 return (
                   <tr key={player.playerId} className="border-b border-border last:border-0">
-                    <td className="relative whitespace-nowrap p-0 text-base font-medium">
-                      <div className="sticky left-0 z-10 flex w-36 items-center gap-2 bg-surface px-3 py-2.5">
-                        <Link href={`/joueuses/${player.playerId}`} className="flex items-center gap-2 hover:underline">
-                          <span className="text-muted tabular-nums">{row.jerseyNumberInput || "—"}</span>
-                          <span>{player.firstName}</span>
-                        </Link>
-                      </div>
-                      <Link
-                        href={`/joueuses/${player.playerId}`}
-                        className="absolute inset-y-0 left-36 flex items-center pl-0 pr-3 text-muted hover:underline"
-                      >
-                        {player.lastName}
+                    <td className="sticky left-0 z-10 w-14 whitespace-nowrap bg-surface px-3 py-2.5 text-center text-base font-semibold tabular-nums text-muted">
+                      {row.jerseyNumberInput || "—"}
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2.5 text-base font-medium">
+                      <Link href={`/joueuses/${player.playerId}`} className="hover:underline">
+                        {player.firstName} {player.lastName}
                       </Link>
                     </td>
                     <td className="px-3 py-2.5 text-center">{row.starter ? "✓" : ""}</td>
@@ -533,7 +528,8 @@ export function StatsGrid({
                 const totals = computeTotals(playerRows);
                 return (
                   <tr className="border-t-2 border-border bg-background font-semibold">
-                    <td className="sticky left-0 z-10 w-36 whitespace-nowrap bg-background px-3 py-2.5">Total équipe</td>
+                    <td className="sticky left-0 z-10 w-14 bg-background px-3 py-2.5 text-center">—</td>
+                    <td className="whitespace-nowrap px-3 py-2.5">Total équipe</td>
                     <td className="px-3 py-2.5 text-center">—</td>
                     <td className="px-3 py-2.5 text-center tabular-nums">
                       {formatSecondsAsClock(totals.totalSeconds)}
