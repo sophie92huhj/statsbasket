@@ -41,7 +41,7 @@ export function PlayerTrendCharts({ lines }: { lines: PlayerMatchInput[] }) {
             <Legend wrapperStyle={{ fontSize: 12 }} />
             <Line type="monotone" dataKey="points" name="Points" stroke={CHART_COLORS[0]} strokeWidth={2} dot={{ r: 3 }} />
             <Line type="monotone" dataKey="rebonds" name="Rebonds" stroke={CHART_COLORS[1]} strokeWidth={2} dot={{ r: 3 }} />
-            <Line type="monotone" dataKey="passes" name="Passes" stroke={CHART_COLORS[2]} strokeWidth={2} dot={{ r: 3 }} />
+            <Line type="monotone" dataKey="passes" name="Passes D" stroke={CHART_COLORS[2]} strokeWidth={2} dot={{ r: 3 }} />
           </LineChart>
         </ResponsiveContainer>
       </Card>

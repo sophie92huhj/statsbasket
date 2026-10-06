@@ -95,6 +95,8 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
   });
   const teamSteals = sum(match.playerStats.map((s) => s.steals));
   const teamTurnovers = sum(match.playerStats.map((s) => s.turnovers));
+  const teamFoulsCommitted = sum(match.playerStats.map((s) => s.foulsCommitted));
+  const teamFoulsDrawn = sum(match.playerStats.map((s) => s.foulsDrawn));
 
   const opponentTeamStat = match.teamStats.find((t) => t.teamId === opponent.id);
   const opponentReboundsOff = opponentTeamStat?.reboundsOff ?? null;
@@ -169,13 +171,15 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
         />
         <KpiCard label="Interceptions" value={teamSteals ?? "—"} />
         <KpiCard label="Balles perdues" value={teamTurnovers ?? "—"} />
+        <KpiCard label="Fautes" value={teamFoulsCommitted ?? "—"} />
+        <KpiCard label="Fautes provoquées" value={teamFoulsDrawn ?? "—"} />
+        <KpiCard label="Ratio rebonds def." value={formatPct(defensiveReboundRatio)} />
         <KpiCard
           label="Ratio rebonds off."
           value={formatPct(offensiveReboundRatio)}
           status={offensiveReboundStatus === null ? undefined : offensiveReboundStatus ? "success" : "danger"}
           sublabel={`Objectif : ≥${appSettings.offensiveReboundTarget}%`}
         />
-        <KpiCard label="Ratio rebonds def." value={formatPct(defensiveReboundRatio)} />
         <KpiCard
           label="Ratio balles perdues"
           value={formatPct(turnoverRatio)}

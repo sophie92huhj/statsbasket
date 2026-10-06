@@ -64,6 +64,14 @@ export default async function PlayerDetailPage({
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <a
+            href={`/api/players/${player.id}/export-pdf${seasonFilter ? `?saison=${seasonFilter}` : ""}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium hover:bg-background"
+          >
+            Exporter en PDF
+          </a>
           <PlayerInfoForm playerId={player.id} firstName={player.firstName} lastName={player.lastName} />
           <SeasonSelector seasons={seasons} currentSeasonId={seasonFilter} />
         </div>
@@ -93,7 +101,7 @@ export default async function PlayerDetailPage({
               </span>
             </Card>
             <Card className="flex flex-col gap-1">
-              <span className="text-xs font-medium uppercase tracking-wide text-muted">Passes / match</span>
+              <span className="text-xs font-medium uppercase tracking-wide text-muted">Passes D / match</span>
               <span className="text-2xl font-semibold tabular-nums">{formatNumber(summary.perGame.assists, 1)}</span>
             </Card>
             <Card className="flex flex-col gap-1">
@@ -127,7 +135,7 @@ export default async function PlayerDetailPage({
                 label="Rebonds : médiane"
                 value={formatNumber(summary.distributions.reboundsTotal.median, 1)}
               />
-              <StatRow label="Passes : médiane" value={formatNumber(summary.distributions.assists.median, 1)} />
+              <StatRow label="Passes D : médiane" value={formatNumber(summary.distributions.assists.median, 1)} />
             </Card>
           </div>
 
@@ -139,7 +147,7 @@ export default async function PlayerDetailPage({
               {[
                 { label: "Points", best: summary.bests.points },
                 { label: "Rebonds", best: summary.bests.reboundsTotal },
-                { label: "Passes", best: summary.bests.assists },
+                { label: "Passes D", best: summary.bests.assists },
                 { label: "Interceptions", best: summary.bests.steals },
                 { label: "Contres", best: summary.bests.blocks },
               ].map(({ label, best }) => (

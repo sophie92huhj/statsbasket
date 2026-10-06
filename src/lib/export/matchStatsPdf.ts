@@ -11,11 +11,20 @@ export interface MatchStatsPlayerRow extends RawPlayerStatLine {
   lastName: string;
 }
 
+export interface TeamStatTile {
+  label: string;
+  value: string;
+  sublabel?: string;
+  /** true = objectif atteint (vert), false = objectif manqué (rouge), null/undefined = neutre. */
+  status?: boolean | null;
+}
+
 export interface MatchStatsPdfInput {
   title: string; // ex: "vs Équipe Adverse"
   subtitle: string; // ex: "05 octobre 2025 · Championnat · 2025-2026"
   score: string; // ex: "72 – 65"
   players: MatchStatsPlayerRow[];
+  teamStats?: TeamStatTile[];
 }
 
 // Mêmes colonnes et mêmes libellés que le tableau de saisie (StatsGrid.tsx),
@@ -35,12 +44,18 @@ const COLUMNS = [
   { key: "stl", label: "INT", width: 34, align: "center" },
   { key: "ctr", label: "CTR", width: 34, align: "center" },
   { key: "bp", label: "BP", width: 34, align: "center" },
-  { key: "fp", label: "FP", width: 34, align: "center" },
-  { key: "fr", label: "FR", width: 34, align: "center" },
+  { key: "fp", label: "F", width: 34, align: "center" },
+  { key: "fr", label: "FP", width: 34, align: "center" },
   { key: "eval", label: "ÉVAL", width: 44, align: "center" },
 ] as const;
 
 type ColumnKey = (typeof COLUMNS)[number]["key"];
+
+// La police standard (WinAnsi) ne supporte pas certains symboles unicode ;
+// on les remplace par des équivalents compatibles avant de dessiner le texte.
+function toWinAnsiSafe(text: string): string {
+  return text.replace(/≥/g, ">=").replace(/≤/g, "<=").replace(/✓/g, "X");
+}
 
 function formatMadeAttempted(made: number | null, attempted: number | null): string {
   if (made === null || attempted === null) return "—";
@@ -144,39 +159,40 @@ export async function generateMatchStatsPdf(input: MatchStatsPdfInput): Promise<
   const zebraBg: RGB = rgb(0.97, 0.97, 0.98);
   const totalsBg: RGB = rgb(0.93, 0.93, 0.95);
   const evalRed: RGB = rgb(0.725, 0.11, 0.11);
+  const winGreen: RGB = rgb(0.086, 0.502, 0.247);
+  const lossRed: RGB = rgb(0.725, 0.11, 0.11);
+  const tileBg: RGB = rgb(0.98, 0.98, 0.99);
 
   const tableWidth = COLUMNS.reduce((acc, c) => acc + c.width, 0);
   const tableX = (pageWidth - tableWidth) / 2;
 
   let page = doc.addPage([pageWidth, pageHeight]);
-  let y = pageHeight;
+  let y = pageHeight - margin;
 
-  const bannerHeight = 54;
-  const bannerY = y - bannerHeight;
-  page.drawRectangle({ x: 0, y: bannerY, width: pageWidth, height: bannerHeight, color: headerBg });
+  const titleSize = 19;
+  page.drawText(input.title, { x: margin, y: y - titleSize * 0.8, size: titleSize, font: boldFont, color: black });
 
-  const titleSize = 20;
-  page.drawText(input.title, {
-    x: margin,
-    y: bannerY + bannerHeight / 2 - titleSize * 0.36,
-    size: titleSize,
-    font: boldFont,
-    color: headerText,
-  });
-
-  const scoreSize = 22;
+  const scoreSize = 19;
   const scoreWidth = boldFont.widthOfTextAtSize(input.score, scoreSize);
   page.drawText(input.score, {
     x: pageWidth - margin - scoreWidth,
-    y: bannerY + bannerHeight / 2 - scoreSize * 0.36,
+    y: y - scoreSize * 0.8,
     size: scoreSize,
     font: boldFont,
-    color: headerText,
+    color: black,
   });
 
-  y = bannerY - 18;
+  y -= titleSize + 10;
   page.drawText(input.subtitle, { x: margin, y, size: 10, font, color: gray });
-  y -= 22;
+  y -= 12;
+
+  page.drawLine({
+    start: { x: margin, y },
+    end: { x: pageWidth - margin, y },
+    thickness: 1,
+    color: black,
+  });
+  y -= 18;
 
   const sortedPlayers = sortByJerseyThenName(input.players);
   const headerRowHeight = 22;
@@ -292,6 +308,93 @@ export async function generateMatchStatsPdf(input: MatchStatsPdfInput): Promise<
 
   if (totalRows > 0) {
     finishPage(tableTop, y);
+  }
+
+  // Section "statistiques d'équipe" : grille de tuiles sous le tableau,
+  // précédée d'une ligne de séparation bleue (même teinte que l'en-tête du tableau).
+  // Les espacements (sectionGap) sont homogènes entre chaque bloc (tableau → ligne →
+  // titre → tuiles) et les tuiles s'étirent pour occuper la hauteur de page restante.
+  const teamStats = input.teamStats ?? [];
+  if (teamStats.length > 0) {
+    const sectionGap = 28;
+    const tilesPerRow = 6;
+    const tileGap = 18;
+    const tileWidth = (tableWidth - tileGap * (tilesPerRow - 1)) / tilesPerRow;
+    const tileRows = Math.ceil(teamStats.length / tilesPerRow);
+    const sectionTitleHeight = 26;
+    const minTileHeight = 70;
+    const minSectionHeight = sectionGap * 2 + sectionTitleHeight + tileRows * (minTileHeight + tileGap);
+
+    if (y - minSectionHeight < margin) {
+      page = doc.addPage([pageWidth, pageHeight]);
+      y = pageHeight - margin;
+    } else {
+      y -= sectionGap;
+    }
+
+    page.drawLine({
+      start: { x: tableX, y },
+      end: { x: tableX + tableWidth, y },
+      thickness: 2,
+      color: headerBg,
+    });
+    y -= sectionGap;
+
+    page.drawText("Statistiques d'équipe", { x: tableX, y: y - 10, size: 13, font: boldFont, color: black });
+    y -= sectionTitleHeight;
+
+    // Les tuiles s'étirent pour remplir la hauteur disponible jusqu'en bas de page.
+    const availableHeight = y - margin;
+    const tileHeight = Math.max(minTileHeight, (availableHeight - tileGap * (tileRows - 1)) / tileRows);
+
+    teamStats.forEach((tile, index) => {
+      const col = index % tilesPerRow;
+      const row = Math.floor(index / tilesPerRow);
+      const tileX = tableX + col * (tileWidth + tileGap);
+      const tileY = y - row * (tileHeight + tileGap) - tileHeight;
+
+      page.drawRectangle({
+        x: tileX,
+        y: tileY,
+        width: tileWidth,
+        height: tileHeight,
+        color: tileBg,
+        borderColor: borderGray,
+        borderWidth: 1,
+      });
+
+      const labelSize = 8;
+      page.drawText(toWinAnsiSafe(tile.label.toUpperCase()), {
+        x: tileX + 10,
+        y: tileY + tileHeight - 20,
+        size: labelSize,
+        font: boldFont,
+        color: gray,
+      });
+
+      const valueSize = 20;
+      const valueColor = tile.status === true ? winGreen : tile.status === false ? lossRed : black;
+      page.drawText(toWinAnsiSafe(tile.value), {
+        x: tileX + 10,
+        y: tileY + tileHeight / 2 - 6,
+        size: valueSize,
+        font: boldFont,
+        color: valueColor,
+      });
+
+      if (tile.sublabel) {
+        const sublabelSize: number = 7;
+        page.drawText(toWinAnsiSafe(tile.sublabel), {
+          x: tileX + 10,
+          y: tileY + 12,
+          size: sublabelSize,
+          font,
+          color: gray,
+        });
+      }
+    });
+
+    y -= tileRows * (tileHeight + tileGap);
   }
 
   return doc.save();

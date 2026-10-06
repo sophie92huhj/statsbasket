@@ -64,8 +64,8 @@ const EDITABLE_COLUMNS: { field: EditableField; label: string; group: string }[]
   { field: "steals", label: "INT", group: "Autres" },
   { field: "blocks", label: "CTR", group: "Autres" },
   { field: "turnovers", label: "BP", group: "Autres" },
-  { field: "foulsCommitted", label: "FP", group: "Autres" },
-  { field: "foulsDrawn", label: "FR", group: "Autres" },
+  { field: "foulsCommitted", label: "F", group: "Autres" },
+  { field: "foulsDrawn", label: "FP", group: "Autres" },
 ];
 
 type RowState = {
@@ -470,8 +470,8 @@ export function StatsGrid({
                 <th className="px-3 py-3 text-center">INT</th>
                 <th className="px-3 py-3 text-center">CTR</th>
                 <th className="px-3 py-3 text-center">BP</th>
+                <th className="px-3 py-3 text-center">F</th>
                 <th className="px-3 py-3 text-center">FP</th>
-                <th className="px-3 py-3 text-center">FR</th>
                 <th className="px-3 py-3 text-center">ÉVAL</th>
               </tr>
             </thead>

@@ -21,7 +21,7 @@ function SummaryCard({ title, summary }: { title: string; summary: TeamSeasonSum
       <StatRow label="% au tir" value={formatPct(summary.shooting.fgPct)} />
       <StatRow label="3PT%" value={formatPct(summary.shooting.fg3Pct)} />
       <StatRow label="Rebonds / match" value={formatNumber(summary.perGameStats.reboundsTotal, 1)} />
-      <StatRow label="Passes / match" value={formatNumber(summary.perGameStats.assists, 1)} />
+      <StatRow label="Passes D / match" value={formatNumber(summary.perGameStats.assists, 1)} />
       <StatRow label="Balles perdues / match" value={formatNumber(summary.perGameStats.turnovers, 1)} />
     </Card>
   );
