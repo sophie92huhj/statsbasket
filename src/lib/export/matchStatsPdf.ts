@@ -1,6 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import { deriveLine } from "@/lib/stats/derive";
-import { formatPct, formatSecondsAsClock } from "@/lib/stats/format";
+import { formatSecondsAsClock } from "@/lib/stats/format";
 import type { RawPlayerStatLine } from "@/lib/stats/types";
 
 export interface MatchStatsPlayerRow extends RawPlayerStatLine {
@@ -32,8 +32,6 @@ const COLUMNS = [
   { key: "stl", label: "INT", width: 22 },
   { key: "to", label: "BP", width: 22 },
   { key: "blk", label: "CTR", width: 22 },
-  { key: "efg", label: "eFG%", width: 34 },
-  { key: "ts", label: "TS%", width: 34 },
 ] as const;
 
 function formatMadeAttempted(made: number | null, attempted: number | null): string {
@@ -123,8 +121,6 @@ export async function generateMatchStatsPdf(input: MatchStatsPdfInput): Promise<
       stl: player.steals !== null ? String(player.steals) : "—",
       to: player.turnovers !== null ? String(player.turnovers) : "—",
       blk: player.blocks !== null ? String(player.blocks) : "—",
-      efg: formatPct(derived.efgPct),
-      ts: formatPct(derived.tsPct),
     };
 
     let x = margin;

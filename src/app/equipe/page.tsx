@@ -18,7 +18,7 @@ function SummaryCard({ title, summary }: { title: string; summary: TeamSeasonSum
       <StatRow label="Points marqués / match" value={formatNumber(summary.pointsFor.perGame, 1)} />
       <StatRow label="Points encaissés / match" value={formatNumber(summary.pointsAgainst.perGame, 1)} />
       <StatRow label="Différentiel / match" value={formatNumber(summary.pointDifferential.perGame, 1)} />
-      <StatRow label="FG%" value={formatPct(summary.shooting.fgPct)} />
+      <StatRow label="% au tir" value={formatPct(summary.shooting.fgPct)} />
       <StatRow label="3PT%" value={formatPct(summary.shooting.fg3Pct)} />
       <StatRow label="Rebonds / match" value={formatNumber(summary.perGameStats.reboundsTotal, 1)} />
       <StatRow label="Passes / match" value={formatNumber(summary.perGameStats.assists, 1)} />

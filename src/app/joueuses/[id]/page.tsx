@@ -110,9 +110,7 @@ export default async function PlayerDetailPage({
               <StatRow label="2PT%" value={formatPct(summary.shooting.fg2Pct)} />
               <StatRow label="3PT%" value={formatPct(summary.shooting.fg3Pct)} />
               <StatRow label="LF%" value={formatPct(summary.shooting.ftPct)} />
-              <StatRow label="FG%" value={formatPct(summary.shooting.fgPct)} />
-              <StatRow label="eFG%" value={formatPct(summary.shooting.efgPct)} />
-              <StatRow label="TS%" value={formatPct(summary.shooting.tsPct)} />
+              <StatRow label="% au tir" value={formatPct(summary.shooting.fgPct)} />
             </Card>
 
             <Card>
