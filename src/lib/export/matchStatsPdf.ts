@@ -149,14 +149,34 @@ export async function generateMatchStatsPdf(input: MatchStatsPdfInput): Promise<
   const tableX = (pageWidth - tableWidth) / 2;
 
   let page = doc.addPage([pageWidth, pageHeight]);
-  let y = pageHeight - margin;
+  let y = pageHeight;
 
-  page.drawText(input.title, { x: margin, y, size: 18, font: boldFont, color: black });
-  y -= 20;
+  const bannerHeight = 54;
+  const bannerY = y - bannerHeight;
+  page.drawRectangle({ x: 0, y: bannerY, width: pageWidth, height: bannerHeight, color: headerBg });
+
+  const titleSize = 20;
+  page.drawText(input.title, {
+    x: margin,
+    y: bannerY + bannerHeight / 2 - titleSize * 0.36,
+    size: titleSize,
+    font: boldFont,
+    color: headerText,
+  });
+
+  const scoreSize = 22;
+  const scoreWidth = boldFont.widthOfTextAtSize(input.score, scoreSize);
+  page.drawText(input.score, {
+    x: pageWidth - margin - scoreWidth,
+    y: bannerY + bannerHeight / 2 - scoreSize * 0.36,
+    size: scoreSize,
+    font: boldFont,
+    color: headerText,
+  });
+
+  y = bannerY - 18;
   page.drawText(input.subtitle, { x: margin, y, size: 10, font, color: gray });
-  y -= 16;
-  page.drawText(`Score : ${input.score}`, { x: margin, y, size: 12, font: boldFont, color: black });
-  y -= 18;
+  y -= 22;
 
   const sortedPlayers = sortByJerseyThenName(input.players);
   const headerRowHeight = 22;
