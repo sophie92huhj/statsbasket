@@ -136,16 +136,17 @@ export async function generateMatchStatsPdf(input: MatchStatsPdfInput): Promise<
   const pageHeight = 595.28;
   const margin = 28;
 
-  const headerBg: RGB = rgb(0.835, 0.329, 0.102); // accent de l'app (#d5541a)
+  const headerBg: RGB = rgb(0.067, 0.133, 0.302); // bleu foncé
   const headerText: RGB = rgb(1, 1, 1);
   const black: RGB = rgb(0.08, 0.09, 0.12);
   const gray: RGB = rgb(0.42, 0.45, 0.49);
   const borderGray: RGB = rgb(0.9, 0.91, 0.89);
   const zebraBg: RGB = rgb(0.97, 0.97, 0.98);
   const totalsBg: RGB = rgb(0.93, 0.93, 0.95);
+  const evalRed: RGB = rgb(0.725, 0.11, 0.11);
 
   const tableWidth = COLUMNS.reduce((acc, c) => acc + c.width, 0);
-  const tableX = margin;
+  const tableX = (pageWidth - tableWidth) / 2;
 
   let page = doc.addPage([pageWidth, pageHeight]);
   let y = pageHeight - margin;
@@ -193,16 +194,18 @@ export async function generateMatchStatsPdf(input: MatchStatsPdfInput): Promise<
     let x = tableX;
     const rowFont = options.totals ? boldFont : font;
     for (const col of COLUMNS) {
+      const isEval = col.key === "eval";
       const text = values[col.key];
       const size = 8.5;
-      const textWidth = rowFont.widthOfTextAtSize(text, size);
+      const cellFont = isEval ? boldFont : rowFont;
+      const textWidth = cellFont.widthOfTextAtSize(text, size);
       const textX = col.align === "center" ? x + (col.width - textWidth) / 2 : x + 6;
       page.drawText(text, {
         x: textX,
         y: startY - rowHeight / 2 - 3,
         size,
-        font: rowFont,
-        color: black,
+        font: cellFont,
+        color: isEval ? evalRed : black,
       });
       x += col.width;
     }
