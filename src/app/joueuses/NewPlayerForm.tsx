@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button, Label, TextInput } from "@/components/ui/Form";
 import { apiFetch } from "@/lib/api/client";
+import { useAuth } from "@/lib/auth/AuthContext";
 
 export function NewPlayerForm() {
   const router = useRouter();
+  const { isAdmin } = useAuth();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +30,8 @@ export function NewPlayerForm() {
       setSubmitting(false);
     }
   }
+
+  if (!isAdmin) return null;
 
   return (
     <Card>

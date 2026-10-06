@@ -1,13 +1,14 @@
 import type { InputHTMLAttributes, SelectHTMLAttributes, ButtonHTMLAttributes } from "react";
 import clsx from "clsx";
 
-export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
+export function TextInput({ className, ...props }: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       {...props}
       className={clsx(
-        "w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm outline-none focus:border-accent",
-        props.className,
+        "w-full rounded-md border border-border bg-background px-3 py-1.5 text-foreground outline-none focus:border-accent",
+        className?.includes("text-") ? "" : "text-sm",
+        className,
       )}
     />
   );
@@ -18,7 +19,7 @@ export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
     <select
       {...props}
       className={clsx(
-        "w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm outline-none focus:border-accent",
+        "w-full rounded-md border border-border bg-background px-3 py-1.5 text-sm text-foreground outline-none focus:border-accent",
         props.className,
       )}
     />

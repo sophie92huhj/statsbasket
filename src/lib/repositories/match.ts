@@ -13,6 +13,8 @@ export interface CreateMatchInput {
   homeScore?: number | null;
   awayScore?: number | null;
   overtimeCount?: number;
+  maxPointDifferentialAdvantage?: number | null;
+  maxPointDifferentialDisadvantage?: number | null;
 }
 
 export function listMatches(seasonId?: string) {

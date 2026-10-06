@@ -2,13 +2,12 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { removeRosterEntry, upsertRosterEntry } from "@/lib/repositories/team";
 
-const POSITIONS = ["MENEUSE", "ARRIERE", "AILIERE", "AILIERE_FORTE", "PIVOT"] as const;
+const POSITIONS = ["POSTE_1", "POSTE_2", "POSTE_3", "POSTE_4", "POSTE_5"] as const;
 const STATUSES = ["ACTIVE", "BLESSEE", "SUSPENDUE", "PARTIE"] as const;
 
 const upsertSchema = z.object({
   playerId: z.string().min(1),
   teamSeasonId: z.string().min(1),
-  jerseyNumber: z.number().int().min(0).max(99).nullish(),
   position: z.enum(POSITIONS).nullish(),
   status: z.enum(STATUSES).optional(),
 });

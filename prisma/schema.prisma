@@ -74,13 +74,12 @@ model Player {
   @@index([lastName, firstName])
 }
 
-// Rattache une joueuse à une équipe pour une saison donnée : numéro, poste, statut.
-// Permet transferts/changements de numéro d'une saison à l'autre sans dupliquer la joueuse.
+// Rattache une joueuse à une équipe pour une saison donnée : poste, statut.
+// Permet transferts d'une saison à l'autre sans dupliquer la joueuse.
 model PlayerTeamSeason {
   id           String  @id @default(cuid())
   playerId     String
   teamSeasonId String
-  jerseyNumber Int?
   position     Position?
   status       PlayerStatus @default(ACTIVE)
 
@@ -90,12 +89,13 @@ model PlayerTeamSeason {
   @@unique([playerId, teamSeasonId])
 }
 
+// Poste par numéro (1 = meneuse, 2 = arrière, 3 = ailière, 4 = ailière forte, 5 = pivot).
 enum Position {
-  MENEUSE
-  ARRIERE
-  AILIERE
-  AILIERE_FORTE
-  PIVOT
+  POSTE_1
+  POSTE_2
+  POSTE_3
+  POSTE_4
+  POSTE_5
 }
 
 enum PlayerStatus {
@@ -123,6 +123,11 @@ model Match {
   homeScore    Int?      // null tant que non saisi
   awayScore    Int?
   overtimeCount Int      @default(0) // nombre de prolongations
+
+  // Repères de différentiel de points propres à ce match (saisis manuellement, non calculés).
+  maxPointDifferentialAdvantage    Int?
+  maxPointDifferentialDisadvantage Int?
+
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -132,10 +137,27 @@ model Match {
 
   playerStats PlayerMatchStat[]
   teamStats   TeamMatchStat[]
+  documents   MatchDocument[]
 
   @@index([seasonId, date])
   @@index([homeTeamId])
   @@index([awayTeamId])
+}
+
+// Feuille de match scannée (PDF) rattachée à un match. Stockée en base (colonne binaire) :
+// volume attendu faible (quelques dizaines/centaines de matchs), pas de dépendance externe.
+model MatchDocument {
+  id          String   @id @default(cuid())
+  matchId     String
+  fileName    String
+  contentType String
+  fileSize    Int
+  data        Bytes
+  createdAt   DateTime @default(now())
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([matchId])
 }
 
 // Statistiques individuelles d'une joueuse pour un match.
@@ -147,6 +169,8 @@ model PlayerMatchStat {
   playerId String
 
   dnp             Boolean @default(false)
+  jerseyNumber    Int?    // numéro porté pour CE match (peut varier d'un match à l'autre)
+  starter         Boolean @default(false) // fait partie du 5 de départ pour CE match
   secondsPlayed   Int?    // temps de jeu total en secondes (ex: 28:32 -> 1712)
 
   fg2Made Int?
@@ -212,4 +236,22 @@ model TeamMatchStat {
   team  Team  @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   @@unique([matchId, teamId])
+}
+
+// ---------------------------------------------------------------------------
+// Paramètres de l'application (ligne unique / singleton)
+// ---------------------------------------------------------------------------
+
+// Objectifs de performance affichés sous forme de code couleur sur les pages
+// de match. Ligne unique (id fixe) : pas de notion de saison ou d'équipe ici.
+model AppSettings {
+  id String @id @default("singleton")
+
+  // Seuil au-dessus duquel le ratio de rebonds offensifs est considéré atteint (0-100).
+  offensiveReboundTarget Float @default(50)
+
+  // Seuil en dessous duquel le ratio de balles perdues est considéré atteint (0-100).
+  turnoverRatioTarget Float @default(20)
+
+  updatedAt DateTime @updatedAt
 }

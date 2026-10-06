@@ -1,13 +1,15 @@
 import Link from "next/link";
-import { listMatches, computeMatchOutcome } from "@/lib/repositories/match";
+import { listTeams } from "@/lib/repositories/team";
 import { listSeasons } from "@/lib/repositories/season";
+import { getPlayerPointsForTeamSeason, getTeamMatchAggregateInputs } from "@/lib/repositories/teamAnalytics";
+import { summarizeTeamSeason } from "@/lib/stats/teamSeasonStats";
 import { KpiCard } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Form";
-import { mean } from "@/lib/stats/aggregate";
 import { formatNumber } from "@/lib/stats/format";
+import { TeamTrendCharts } from "@/app/equipe/TeamTrendCharts";
 
 export default async function Home() {
-  const [seasons, matches] = await Promise.all([listSeasons(), listMatches()]);
+  const [seasons, teams] = await Promise.all([listSeasons(), listTeams()]);
 
   if (seasons.length === 0) {
     return (
@@ -24,21 +26,27 @@ export default async function Home() {
     );
   }
 
-  const playedMatches = matches.filter((m) => m.homeScore !== null && m.awayScore !== null);
-  const outcomes = playedMatches.map((m) => {
-    const ownScore = m.isHome ? m.homeScore : m.awayScore;
-    const opponentScore = m.isHome ? m.awayScore : m.homeScore;
-    return computeMatchOutcome(ownScore, opponentScore);
-  });
-  const wins = outcomes.filter((o) => o === "WIN").length;
-  const losses = outcomes.filter((o) => o === "LOSS").length;
+  const ownTeam = teams.find((t) => t.isOwnTeam);
 
-  const avgPointsFor = mean(
-    playedMatches.map((m) => (m.isHome ? m.homeScore : m.awayScore)),
-  );
-  const avgPointsAgainst = mean(
-    playedMatches.map((m) => (m.isHome ? m.awayScore : m.homeScore)),
-  );
+  if (!ownTeam) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-24 text-center">
+        <h1 className="text-2xl font-semibold">Bienvenue sur StatsBasket</h1>
+        <p className="max-w-md text-sm text-muted">
+          Aucune équipe n&apos;est marquée comme « Notre équipe ». Rendez-vous dans Paramètres pour le configurer.
+        </p>
+        <Link href="/parametres">
+          <Button type="button">Aller aux Paramètres</Button>
+        </Link>
+      </div>
+    );
+  }
+
+  const [matches, playerPoints] = await Promise.all([
+    getTeamMatchAggregateInputs(ownTeam.id),
+    getPlayerPointsForTeamSeason(ownTeam.id),
+  ]);
+  const summary = summarizeTeamSeason(matches);
 
   return (
     <div className="flex flex-col gap-6">
@@ -47,22 +55,25 @@ export default async function Home() {
         <p className="text-sm text-muted">Vue d&apos;ensemble de la saison en cours.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <KpiCard label="Matchs" value={playedMatches.length} />
-        <KpiCard label="Victoires" value={wins} />
-        <KpiCard label="Défaites" value={losses} />
-        <KpiCard label="Pts / match" value={formatNumber(avgPointsFor, 1)} />
-        <KpiCard label="Pts encaissés / match" value={formatNumber(avgPointsAgainst, 1)} />
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <KpiCard label="Matchs" value={summary.gamesPlayed} />
+        <KpiCard label="Victoires" value={summary.wins} />
+        <KpiCard label="Défaites" value={summary.losses} />
+        <KpiCard label="Pts / match" value={formatNumber(summary.pointsFor.perGame, 1)} />
+        <KpiCard label="Pts encaissés / match" value={formatNumber(summary.pointsAgainst.perGame, 1)} />
       </div>
 
-      <p className="text-sm text-muted">
-        Le dashboard détaillé (graphiques d&apos;évolution, répartition par joueuse) arrive en Phase 4. Pour
-        l&apos;instant, consultez les{" "}
-        <Link href="/matchs" className="text-accent hover:underline">
-          matchs
-        </Link>{" "}
-        pour saisir vos statistiques.
-      </p>
+      {summary.gamesPlayed === 0 ? (
+        <p className="text-sm text-muted">
+          Aucun match avec score renseigné. Consultez les{" "}
+          <Link href="/matchs" className="text-accent hover:underline">
+            matchs
+          </Link>{" "}
+          pour saisir vos statistiques.
+        </p>
+      ) : (
+        <TeamTrendCharts matches={matches} playerPoints={playerPoints} />
+      )}
     </div>
   );
 }

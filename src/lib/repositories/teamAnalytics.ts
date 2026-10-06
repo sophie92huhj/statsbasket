@@ -29,6 +29,7 @@ export async function getTeamMatchAggregateInputs(
 
     return {
       matchId: match.id,
+      matchDate: match.date,
       outcome: computeMatchOutcome(ownScore, opponentScore),
       isHome,
       ownScore,
@@ -54,4 +55,49 @@ export async function getTeamMatchAggregateInputs(
       })),
     };
   });
+}
+
+export interface PlayerSeasonPoints {
+  playerId: string;
+  firstName: string;
+  lastName: string;
+  totalPoints: number;
+}
+
+/** Points cumulés sur la saison, par joueuse de l'équipe (pour le graphique "points par joueuse"). */
+export async function getPlayerPointsForTeamSeason(
+  teamId: string,
+  filters: TeamAnalyticsFilters = {},
+): Promise<PlayerSeasonPoints[]> {
+  const stats = await prisma.playerMatchStat.findMany({
+    where: {
+      match: {
+        seasonId: filters.seasonId,
+        OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }],
+      },
+    },
+    include: { player: true },
+  });
+
+  const totals = new Map<string, PlayerSeasonPoints>();
+  for (const s of stats) {
+    const points =
+      s.fg2Made !== null && s.fg3Made !== null && s.ftMade !== null
+        ? s.fg2Made * 2 + s.fg3Made * 3 + s.ftMade
+        : null;
+    if (points === null) continue;
+    const existing = totals.get(s.playerId);
+    if (existing) {
+      existing.totalPoints += points;
+    } else {
+      totals.set(s.playerId, {
+        playerId: s.playerId,
+        firstName: s.player.firstName,
+        lastName: s.player.lastName,
+        totalPoints: points,
+      });
+    }
+  }
+
+  return [...totals.values()].sort((a, b) => b.totalPoints - a.totalPoints);
 }

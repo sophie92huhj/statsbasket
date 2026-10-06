@@ -72,4 +72,9 @@ export interface DerivedStatLine {
   pointsFrom2: number | null;
   pointsFrom3: number | null;
   pointsFromFt: number | null;
+  /**
+   * Évaluation FFBB : (PTS + REB + PD + INT + CTR) − (tirs manqués 2PT/3PT/LF) − BP.
+   * Les fautes et fautes provoquées ne sont volontairement pas prises en compte.
+   */
+  evaluation: number | null;
 }

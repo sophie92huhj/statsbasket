@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { checkPointsConsistency, deriveLine } from "../derive";
+import {
+  checkPointsConsistency,
+  computeDefensiveReboundRatio,
+  computeOffensiveReboundRatio,
+  computeTurnoverRatio,
+  deriveLine,
+  isTargetMet,
+} from "../derive";
 import type { RawPlayerStatLine } from "../types";
 
 function line(overrides: Partial<RawPlayerStatLine> = {}): RawPlayerStatLine {
@@ -104,6 +111,113 @@ describe("deriveLine — répartition des points (§12)", () => {
     expect(derived.pointsFrom2).toBe(12);
     expect(derived.pointsFrom3).toBe(9);
     expect(derived.pointsFromFt).toBe(5);
+  });
+});
+
+describe("deriveLine — évaluation", () => {
+  it("EVAL = (PTS+REB+PD+INT+CTR) - (tirs manqués) - BP, sans fautes", () => {
+    const derived = deriveLine(
+      line({
+        fg2Made: 6,
+        fg2Att: 10,
+        fg3Made: 3,
+        fg3Att: 8,
+        ftMade: 5,
+        ftAtt: 6,
+        reboundsOff: 2,
+        reboundsDef: 4,
+        assists: 3,
+        steals: 2,
+        turnovers: 4,
+        blocks: 1,
+        foulsCommitted: 5,
+        foulsDrawn: 5,
+      }),
+    );
+    // points=26, REB=6, missed=(10-6)+(8-3)+(6-5)=4+5+1=10
+    // EVAL = 26+6+3+2+1-10-4 = 24
+    expect(derived.evaluation).toBe(24);
+  });
+
+  it("ignore les fautes et fautes provoquées dans le calcul", () => {
+    const base = line({
+      fg2Made: 4,
+      fg2Att: 4,
+      fg3Made: 0,
+      fg3Att: 0,
+      ftMade: 0,
+      ftAtt: 0,
+      reboundsOff: 0,
+      reboundsDef: 0,
+      assists: 0,
+      steals: 0,
+      turnovers: 0,
+      blocks: 0,
+    });
+    const withoutFouls = deriveLine(base);
+    const withFouls = deriveLine({ ...base, foulsCommitted: 10, foulsDrawn: 10 });
+    expect(withFouls.evaluation).toBe(withoutFouls.evaluation);
+  });
+
+  it("retourne null si une statistique nécessaire est manquante", () => {
+    const derived = deriveLine(line({ fg2Made: 6, fg2Att: 10 }));
+    expect(derived.evaluation).toBeNull();
+  });
+});
+
+describe("computeOffensiveReboundRatio", () => {
+  it("RO équipe / (tirs ratés équipe + 0.44 × LF tentés équipe) × 100", () => {
+    // 10 / (20 + 0.44*10) = 10 / 24.4 = 40.98%
+    expect(computeOffensiveReboundRatio(10, 20, 10)).toBeCloseTo(40.98, 2);
+  });
+
+  it("retourne null si une valeur est manquante", () => {
+    expect(computeOffensiveReboundRatio(10, null, 10)).toBeNull();
+  });
+
+  it("retourne null si le dénominateur est nul", () => {
+    expect(computeOffensiveReboundRatio(0, 0, 0)).toBeNull();
+  });
+});
+
+describe("computeDefensiveReboundRatio", () => {
+  it("RD équipe / (RD équipe + RO adverse) × 100", () => {
+    expect(computeDefensiveReboundRatio(30, 10)).toBe(75);
+  });
+
+  it("retourne null si une valeur est manquante", () => {
+    expect(computeDefensiveReboundRatio(null, 10)).toBeNull();
+  });
+});
+
+describe("computeTurnoverRatio", () => {
+  it("TO / (FGA + 0.44×FTA + TO) × 100", () => {
+    // 10 / (60 + 0.44*20 + 10) = 10 / 78.8 = 12.69%
+    expect(computeTurnoverRatio(10, 60, 20)).toBeCloseTo(12.69, 2);
+  });
+
+  it("retourne null si une valeur est manquante", () => {
+    expect(computeTurnoverRatio(null, 60, 20)).toBeNull();
+  });
+
+  it("retourne null si le dénominateur est nul", () => {
+    expect(computeTurnoverRatio(0, 0, 0)).toBeNull();
+  });
+});
+
+describe("isTargetMet", () => {
+  it("higher-is-better : atteint si ratio >= cible", () => {
+    expect(isTargetMet(55, 50, "higher-is-better")).toBe(true);
+    expect(isTargetMet(45, 50, "higher-is-better")).toBe(false);
+  });
+
+  it("lower-is-better : atteint si ratio <= cible", () => {
+    expect(isTargetMet(15, 20, "lower-is-better")).toBe(true);
+    expect(isTargetMet(25, 20, "lower-is-better")).toBe(false);
+  });
+
+  it("retourne null si le ratio n'est pas calculable", () => {
+    expect(isTargetMet(null, 50, "higher-is-better")).toBeNull();
   });
 });
 

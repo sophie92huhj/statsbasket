@@ -2,16 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Label, Select, TextInput } from "@/components/ui/Form";
+import { Card } from "@/components/ui/Card";
+import { Button, Label, Select } from "@/components/ui/Form";
 import { apiFetch } from "@/lib/api/client";
+import { useAuth } from "@/lib/auth/AuthContext";
 
 const POSITIONS = [
   { value: "", label: "—" },
-  { value: "MENEUSE", label: "Meneuse" },
-  { value: "ARRIERE", label: "Arrière" },
-  { value: "AILIERE", label: "Ailière" },
-  { value: "AILIERE_FORTE", label: "Ailière forte" },
-  { value: "PIVOT", label: "Pivot" },
+  { value: "POSTE_1", label: "1" },
+  { value: "POSTE_2", label: "2" },
+  { value: "POSTE_3", label: "3" },
+  { value: "POSTE_4", label: "4" },
+  { value: "POSTE_5", label: "5" },
 ];
 
 interface TeamSeasonOption {
@@ -22,8 +24,8 @@ interface TeamSeasonOption {
 
 export function RosterForm({ playerId, teamSeasons }: { playerId: string; teamSeasons: TeamSeasonOption[] }) {
   const router = useRouter();
+  const { isAdmin } = useAuth();
   const [teamSeasonId, setTeamSeasonId] = useState(teamSeasons[0]?.id ?? "");
-  const [jerseyNumber, setJerseyNumber] = useState("");
   const [position, setPosition] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -38,11 +40,9 @@ export function RosterForm({ playerId, teamSeasons }: { playerId: string; teamSe
         body: JSON.stringify({
           playerId,
           teamSeasonId,
-          jerseyNumber: jerseyNumber ? Number(jerseyNumber) : null,
           position: position || null,
         }),
       });
-      setJerseyNumber("");
       setPosition("");
       router.refresh();
     } catch (err) {
@@ -52,51 +52,43 @@ export function RosterForm({ playerId, teamSeasons }: { playerId: string; teamSe
     }
   }
 
-  if (teamSeasons.length === 0) {
-    return (
-      <p className="text-sm text-muted">
-        Aucune équipe/saison configurée. Rendez-vous dans Paramètres pour en créer une.
-      </p>
-    );
-  }
+  if (!isAdmin) return null;
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3">
-      <div>
-        <Label>Équipe / Saison</Label>
-        <Select value={teamSeasonId} onChange={(e) => setTeamSeasonId(e.target.value)}>
-          {teamSeasons.map((ts) => (
-            <option key={ts.id} value={ts.id}>
-              {ts.teamName} — {ts.seasonLabel}
-            </option>
-          ))}
-        </Select>
-      </div>
-      <div>
-        <Label>Numéro de maillot</Label>
-        <TextInput
-          type="number"
-          min={0}
-          max={99}
-          value={jerseyNumber}
-          onChange={(e) => setJerseyNumber(e.target.value)}
-          className="w-24"
-        />
-      </div>
-      <div>
-        <Label>Poste</Label>
-        <Select value={position} onChange={(e) => setPosition(e.target.value)}>
-          {POSITIONS.map((p) => (
-            <option key={p.value} value={p.value}>
-              {p.label}
-            </option>
-          ))}
-        </Select>
-      </div>
-      <Button type="submit" disabled={submitting}>
-        Rattacher
-      </Button>
-      {error && <p className="text-sm text-loss">{error}</p>}
-    </form>
+    <Card className="flex flex-col gap-4">
+      <h2 className="text-sm font-semibold">Rattacher à une équipe / saison</h2>
+      {teamSeasons.length === 0 ? (
+        <p className="text-sm text-muted">
+          Aucune équipe/saison configurée. Rendez-vous dans Paramètres pour en créer une.
+        </p>
+      ) : (
+        <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3">
+          <div>
+            <Label>Équipe / Saison</Label>
+            <Select value={teamSeasonId} onChange={(e) => setTeamSeasonId(e.target.value)}>
+              {teamSeasons.map((ts) => (
+                <option key={ts.id} value={ts.id}>
+                  {ts.teamName} — {ts.seasonLabel}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div>
+            <Label>Poste</Label>
+            <Select value={position} onChange={(e) => setPosition(e.target.value)}>
+              {POSITIONS.map((p) => (
+                <option key={p.value} value={p.value}>
+                  {p.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <Button type="submit" disabled={submitting}>
+            Rattacher
+          </Button>
+          {error && <p className="text-sm text-loss">{error}</p>}
+        </form>
+      )}
+    </Card>
   );
 }

@@ -7,8 +7,6 @@ import { Button, Label, Select, TextInput } from "@/components/ui/Form";
 import { apiFetch, ApiError } from "@/lib/api/client";
 import type { Season, Team } from "@prisma/client";
 
-const NEW_TEAM_VALUE = "__new__";
-
 export function NewMatchForm({
   seasons,
   teams,
@@ -20,8 +18,7 @@ export function NewMatchForm({
 }) {
   const router = useRouter();
   const [seasonId, setSeasonId] = useState(seasons[0]?.id ?? "");
-  const [opponentTeamId, setOpponentTeamId] = useState(teams[0]?.id ?? "");
-  const [newOpponentName, setNewOpponentName] = useState("");
+  const [opponentName, setOpponentName] = useState("");
   const [date, setDate] = useState("");
   const [isHome, setIsHome] = useState(true);
   const [competition, setCompetition] = useState("");
@@ -38,22 +35,21 @@ export function NewMatchForm({
       setError("Aucune équipe n'est marquée comme « Notre équipe » dans Paramètres.");
       return;
     }
+    const trimmedOpponentName = opponentName.trim();
+    if (!trimmedOpponentName) {
+      setError("Indiquez le nom de l'adversaire.");
+      return;
+    }
 
     setSubmitting(true);
     try {
-      let finalOpponentId = opponentTeamId;
-      if (opponentTeamId === NEW_TEAM_VALUE) {
-        if (!newOpponentName.trim()) {
-          setError("Indiquez le nom du nouvel adversaire.");
-          setSubmitting(false);
-          return;
-        }
-        const created = await apiFetch<Team>("/api/teams", {
-          method: "POST",
-          body: JSON.stringify({ name: newOpponentName.trim() }),
-        });
-        finalOpponentId = created.id;
-      }
+      const existing = teams.find(
+        (t) => t.id !== ownTeamId && t.name.toLowerCase() === trimmedOpponentName.toLowerCase(),
+      );
+      const finalOpponentId = existing
+        ? existing.id
+        : (await apiFetch<Team>("/api/teams", { method: "POST", body: JSON.stringify({ name: trimmedOpponentName }) }))
+            .id;
 
       const homeTeamId = isHome ? ownTeamId : finalOpponentId;
       const awayTeamId = isHome ? finalOpponentId : ownTeamId;
@@ -115,23 +111,21 @@ export function NewMatchForm({
 
         <div>
           <Label>Adversaire</Label>
-          <Select value={opponentTeamId} onChange={(e) => setOpponentTeamId(e.target.value)}>
+          <TextInput
+            value={opponentName}
+            onChange={(e) => setOpponentName(e.target.value)}
+            placeholder="Nom de l'équipe adverse"
+            list="opponent-suggestions"
+            required
+          />
+          <datalist id="opponent-suggestions">
             {teams
               .filter((t) => t.id !== ownTeamId)
               .map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
+                <option key={t.id} value={t.name} />
               ))}
-            <option value={NEW_TEAM_VALUE}>+ Nouvel adversaire…</option>
-          </Select>
+          </datalist>
         </div>
-        {opponentTeamId === NEW_TEAM_VALUE && (
-          <div>
-            <Label>Nom du nouvel adversaire</Label>
-            <TextInput value={newOpponentName} onChange={(e) => setNewOpponentName(e.target.value)} />
-          </div>
-        )}
 
         <div>
           <Label>Score domicile (optionnel)</Label>

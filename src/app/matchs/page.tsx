@@ -3,8 +3,8 @@ import { listMatches } from "@/lib/repositories/match";
 import { computeMatchOutcome, computePointDifferential } from "@/lib/repositories/match";
 import { Card } from "@/components/ui/Card";
 import { OutcomeBadge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Form";
 import { formatNumber } from "@/lib/stats/format";
+import { NewMatchButton } from "./NewMatchButton";
 
 function formatDate(date: Date): string {
   return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(date);
@@ -15,18 +15,16 @@ export default async function MatchesPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">Matchs</h1>
           <p className="text-sm text-muted">Historique des matchs, toutes saisons.</p>
         </div>
-        <Link href="/matchs/nouveau">
-          <Button type="button">Nouveau match</Button>
-        </Link>
+        <NewMatchButton />
       </div>
 
-      <Card className="p-0">
-        <table className="w-full text-sm">
+      <Card className="overflow-x-auto p-0">
+        <table className="w-full min-w-[640px] text-sm">
           <thead>
             <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted">
               <th className="px-4 py-3">Date</th>

@@ -3,7 +3,8 @@ import { prisma } from "@/lib/db/client";
 export interface PlayerMatchStatInput {
   matchId: string;
   playerId: string;
-  dnp?: boolean;
+  jerseyNumber?: number | null;
+  starter?: boolean;
   secondsPlayed?: number | null;
   fg2Made?: number | null;
   fg2Att?: number | null;
@@ -53,6 +54,12 @@ export function upsertPlayerMatchStatsBatch(inputs: PlayerMatchStatInput[]) {
 
 export function deletePlayerMatchStat(id: string) {
   return prisma.playerMatchStat.delete({ where: { id } });
+}
+
+/** Retire des joueuses de la feuille de match (elles ne sont plus convoquées à ce match). */
+export function removePlayersFromMatch(matchId: string, playerIds: string[]) {
+  if (playerIds.length === 0) return Promise.resolve();
+  return prisma.playerMatchStat.deleteMany({ where: { matchId, playerId: { in: playerIds } } });
 }
 
 export interface TeamMatchStatInput {

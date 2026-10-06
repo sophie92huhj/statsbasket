@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button, Label, Select, TextInput } from "@/components/ui/Form";
 import { apiFetch } from "@/lib/api/client";
+import { useAuth } from "@/lib/auth/AuthContext";
 import type { Season, Team } from "@prisma/client";
 
 interface TeamSeasonRow {
@@ -26,6 +27,7 @@ export function TeamSeasonsPanel({
   seasons: Season[];
 }) {
   const router = useRouter();
+  const { isAdmin } = useAuth();
   const [teamId, setTeamId] = useState(teams[0]?.id ?? "");
   const [seasonId, setSeasonId] = useState(seasons[0]?.id ?? "");
   const [category, setCategory] = useState("");
@@ -75,7 +77,7 @@ export function TeamSeasonsPanel({
 
       <ul className="flex flex-col gap-2">
         {teamSeasons.map((ts) => (
-          <li key={ts.id} className="flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm">
+          <li key={ts.id} className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border px-3 py-2 text-sm">
             <div>
               <span className="font-medium">{ts.team.name}</span>
               <span className="ml-2 text-xs text-muted">{ts.season.label}</span>
@@ -83,53 +85,60 @@ export function TeamSeasonsPanel({
               {ts.league && <span className="ml-2 text-xs text-muted">· {ts.league}</span>}
               {ts.coachName && <span className="ml-2 text-xs text-muted">· Coach: {ts.coachName}</span>}
             </div>
-            <Button variant="danger" onClick={() => handleDelete(ts.id)} type="button">
-              Retirer
-            </Button>
+            {isAdmin && (
+              <Button variant="danger" onClick={() => handleDelete(ts.id)} type="button">
+                Retirer
+              </Button>
+            )}
           </li>
         ))}
         {teamSeasons.length === 0 && <li className="text-sm text-muted">Aucun rattachement.</li>}
       </ul>
 
-      <form onSubmit={handleCreate} className="grid grid-cols-1 gap-3 border-t border-border pt-4 sm:grid-cols-3 lg:grid-cols-5">
-        <div>
-          <Label>Équipe</Label>
-          <Select value={teamId} onChange={(e) => setTeamId(e.target.value)}>
-            {teams.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div>
-          <Label>Saison</Label>
-          <Select value={seasonId} onChange={(e) => setSeasonId(e.target.value)}>
-            {seasons.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.label}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div>
-          <Label>Catégorie</Label>
-          <TextInput value={category} onChange={(e) => setCategory(e.target.value)} placeholder="U18F" />
-        </div>
-        <div>
-          <Label>Championnat</Label>
-          <TextInput value={league} onChange={(e) => setLeague(e.target.value)} placeholder="Régionale 1" />
-        </div>
-        <div>
-          <Label>Coach</Label>
-          <TextInput value={coachName} onChange={(e) => setCoachName(e.target.value)} />
-        </div>
-        <div className="sm:col-span-3 lg:col-span-5">
-          <Button type="submit" disabled={submitting}>
-            Rattacher
-          </Button>
-        </div>
-      </form>
+      {isAdmin && (
+        <form
+          onSubmit={handleCreate}
+          className="grid grid-cols-1 gap-3 border-t border-border pt-4 sm:grid-cols-3 lg:grid-cols-5"
+        >
+          <div>
+            <Label>Équipe</Label>
+            <Select value={teamId} onChange={(e) => setTeamId(e.target.value)}>
+              {teams.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.name}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div>
+            <Label>Saison</Label>
+            <Select value={seasonId} onChange={(e) => setSeasonId(e.target.value)}>
+              {seasons.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div>
+            <Label>Catégorie</Label>
+            <TextInput value={category} onChange={(e) => setCategory(e.target.value)} placeholder="U18F" />
+          </div>
+          <div>
+            <Label>Championnat</Label>
+            <TextInput value={league} onChange={(e) => setLeague(e.target.value)} placeholder="Régionale 1" />
+          </div>
+          <div>
+            <Label>Coach</Label>
+            <TextInput value={coachName} onChange={(e) => setCoachName(e.target.value)} />
+          </div>
+          <div className="sm:col-span-3 lg:col-span-5">
+            <Button type="submit" disabled={submitting}>
+              Rattacher
+            </Button>
+          </div>
+        </form>
+      )}
       {error && <p className="text-sm text-loss">{error}</p>}
     </Card>
   );

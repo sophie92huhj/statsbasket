@@ -77,7 +77,6 @@ export function deleteTeamSeason(id: string) {
 export interface UpsertRosterEntryInput {
   playerId: string;
   teamSeasonId: string;
-  jerseyNumber?: number | null;
   position?: Position | null;
   status?: PlayerStatus;
 }
@@ -99,6 +98,6 @@ export function listRosterForTeamSeason(teamSeasonId: string) {
   return prisma.playerTeamSeason.findMany({
     where: { teamSeasonId },
     include: { player: true },
-    orderBy: { jerseyNumber: "asc" },
+    orderBy: { player: { lastName: "asc" } },
   });
 }

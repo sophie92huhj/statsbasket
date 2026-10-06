@@ -29,6 +29,7 @@ function playerLine(overrides: Partial<RawPlayerStatLine> = {}): RawPlayerStatLi
 function teamMatch(overrides: Partial<TeamMatchAggregateInput>): TeamMatchAggregateInput {
   return {
     matchId: "m1",
+    matchDate: new Date("2025-10-01"),
     outcome: "WIN",
     isHome: true,
     ownScore: 70,

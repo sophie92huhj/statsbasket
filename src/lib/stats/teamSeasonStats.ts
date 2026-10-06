@@ -9,6 +9,7 @@ import type { MatchOutcome } from "@/lib/repositories/match";
 
 export interface TeamMatchAggregateInput {
   matchId: string;
+  matchDate: Date;
   outcome: MatchOutcome;
   isHome: boolean;
   ownScore: number | null;

@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { listPlayerStatsForMatch, upsertPlayerMatchStatsBatch } from "@/lib/repositories/matchStat";
+import {
+  listPlayerStatsForMatch,
+  removePlayersFromMatch,
+  upsertPlayerMatchStatsBatch,
+} from "@/lib/repositories/matchStat";
 import { validatePlayerStatLine, findDuplicatePlayers } from "@/lib/stats/validate";
 
 const statLineSchema = z.object({
   playerId: z.string().min(1),
-  dnp: z.boolean().optional(),
+  jerseyNumber: z.number().int().min(0).max(99).nullish(),
+  starter: z.boolean().optional(),
   secondsPlayed: z.number().int().min(0).nullish(),
   fg2Made: z.number().int().min(0).nullish(),
   fg2Att: z.number().int().min(0).nullish(),
@@ -26,6 +31,8 @@ const statLineSchema = z.object({
 
 const batchSchema = z.object({
   lines: z.array(statLineSchema),
+  // Joueuses retirées de la feuille de match : leurs statistiques sont supprimées.
+  removePlayerIds: z.array(z.string()).optional(),
   // Si true, sauvegarde même en présence d'avertissements (mais jamais d'erreurs bloquantes).
   force: z.boolean().optional(),
 });
@@ -44,7 +51,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  const { lines, force } = parsed.data;
+  const { lines, force, removePlayerIds } = parsed.data;
 
   const duplicates = findDuplicatePlayers(lines.map((l) => l.playerId));
   if (duplicates.length > 0) {
@@ -57,7 +64,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   const validation = lines.map((line) => ({
     playerId: line.playerId,
     issues: validatePlayerStatLine({
-      dnp: line.dnp ?? false,
+      dnp: false,
       secondsPlayed: line.secondsPlayed ?? null,
       fg2Made: line.fg2Made ?? null,
       fg2Att: line.fg2Att ?? null,
@@ -85,6 +92,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
   if (hasWarnings && !force) {
     return NextResponse.json({ warning: "Avertissements détectés.", validation }, { status: 422 });
+  }
+
+  if (removePlayerIds && removePlayerIds.length > 0) {
+    await removePlayersFromMatch(matchId, removePlayerIds);
   }
 
   const saved = await upsertPlayerMatchStatsBatch(lines.map((line) => ({ matchId, ...line })));

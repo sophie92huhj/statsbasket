@@ -1,12 +1,13 @@
 import { listTeams } from "@/lib/repositories/team";
 import { listSeasons } from "@/lib/repositories/season";
-import { getTeamMatchAggregateInputs } from "@/lib/repositories/teamAnalytics";
+import { getPlayerPointsForTeamSeason, getTeamMatchAggregateInputs } from "@/lib/repositories/teamAnalytics";
 import { splitTeamMatches, summarizeTeamSeason } from "@/lib/stats/teamSeasonStats";
 import type { TeamSeasonSummary } from "@/lib/stats/teamSeasonStats";
 import { formatNumber, formatPct } from "@/lib/stats/format";
 import { Card, KpiCard } from "@/components/ui/Card";
 import { StatRow } from "@/components/stats/StatsTable";
 import { SeasonSelector } from "./SeasonSelector";
+import { TeamTrendCharts } from "./TeamTrendCharts";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 
 function SummaryCard({ title, summary }: { title: string; summary: TeamSeasonSummary }) {
@@ -44,7 +45,10 @@ export default async function TeamPage({
     );
   }
 
-  const matches = await getTeamMatchAggregateInputs(ownTeam.id, { seasonId: seasonFilter });
+  const [matches, playerPoints] = await Promise.all([
+    getTeamMatchAggregateInputs(ownTeam.id, { seasonId: seasonFilter }),
+    getPlayerPointsForTeamSeason(ownTeam.id, { seasonId: seasonFilter }),
+  ]);
   const overall = summarizeTeamSeason(matches);
   const { wins, losses, home, away } = splitTeamMatches(matches);
 
@@ -78,10 +82,12 @@ export default async function TeamPage({
         <KpiCard label="Diff. / match" value={formatNumber(overall.pointDifferential.perGame, 1)} />
       </div>
 
-      <SummaryCard title="Saison complète (§17)" summary={overall} />
+      <SummaryCard title="Saison complète" summary={overall} />
+
+      <TeamTrendCharts matches={matches} playerPoints={playerPoints} />
 
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-muted">Victoires vs Défaites (§24)</h2>
+        <h2 className="mb-3 text-sm font-semibold text-muted">Victoires vs Défaites</h2>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <SummaryCard title="Sur les victoires" summary={wins} />
           <SummaryCard title="Sur les défaites" summary={losses} />
@@ -89,7 +95,7 @@ export default async function TeamPage({
       </div>
 
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-muted">Domicile vs Extérieur (§25)</h2>
+        <h2 className="mb-3 text-sm font-semibold text-muted">Domicile vs Extérieur</h2>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <SummaryCard title="À domicile" summary={home} />
           <SummaryCard title="À l'extérieur" summary={away} />

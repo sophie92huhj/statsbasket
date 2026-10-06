@@ -14,6 +14,8 @@ const updateMatchSchema = z.object({
   homeScore: z.number().int().min(0).nullish(),
   awayScore: z.number().int().min(0).nullish(),
   overtimeCount: z.number().int().min(0).optional(),
+  maxPointDifferentialAdvantage: z.number().int().min(0).nullish(),
+  maxPointDifferentialDisadvantage: z.number().int().min(0).nullish(),
 });
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {

@@ -67,6 +67,54 @@ function computeTsPct(points: number | null, fgAttempted: number | null, ftAttem
   return (points / denominator) * 100;
 }
 
+/**
+ * Évaluation FFBB = (PTS + REB + PD + INT + CTR) − (tirs manqués 2PT/3PT/LF) − BP.
+ * Les fautes commises et provoquées ne sont volontairement pas prises en compte.
+ * Retourne null si une des statistiques nécessaires n'est pas renseignée.
+ */
+function computeEvaluation(input: {
+  points: number | null;
+  fg2: ShootingSplit;
+  fg3: ShootingSplit;
+  ft: ShootingSplit;
+  reboundsTotal: number | null;
+  assists: Maybe<number>;
+  steals: Maybe<number>;
+  turnovers: Maybe<number>;
+  blocks: Maybe<number>;
+}): number | null {
+  const { points, fg2, fg3, ft, reboundsTotal } = input;
+  if (
+    points === null ||
+    fg2.made === null ||
+    fg2.attempted === null ||
+    fg3.made === null ||
+    fg3.attempted === null ||
+    ft.made === null ||
+    ft.attempted === null ||
+    reboundsTotal === null ||
+    !isKnown(input.assists) ||
+    !isKnown(input.steals) ||
+    !isKnown(input.turnovers) ||
+    !isKnown(input.blocks)
+  ) {
+    return null;
+  }
+
+  const missed =
+    (fg2.attempted - fg2.made) + (fg3.attempted - fg3.made) + (ft.attempted - ft.made);
+
+  return (
+    points +
+    reboundsTotal +
+    input.assists +
+    input.steals +
+    input.blocks -
+    missed -
+    input.turnovers
+  );
+}
+
 function deriveCommon(input: {
   fg2Made: Maybe<number>;
   fg2Att: Maybe<number>;
@@ -76,6 +124,10 @@ function deriveCommon(input: {
   ftAtt: Maybe<number>;
   reboundsOff: Maybe<number>;
   reboundsDef: Maybe<number>;
+  assists: Maybe<number>;
+  steals: Maybe<number>;
+  turnovers: Maybe<number>;
+  blocks: Maybe<number>;
 }): DerivedStatLine {
   const fg2 = buildSplit(input.fg2Made, input.fg2Att);
   const fg3 = buildSplit(input.fg3Made, input.fg3Att);
@@ -91,6 +143,18 @@ function deriveCommon(input: {
   const reboundsTotal =
     reboundsOff !== null && reboundsDef !== null ? reboundsOff + reboundsDef : null;
 
+  const evaluation = computeEvaluation({
+    points,
+    fg2,
+    fg3,
+    ft,
+    reboundsTotal,
+    assists: input.assists,
+    steals: input.steals,
+    turnovers: input.turnovers,
+    blocks: input.blocks,
+  });
+
   return {
     points,
     fg2,
@@ -105,6 +169,7 @@ function deriveCommon(input: {
     pointsFrom2: isKnown(input.fg2Made) ? input.fg2Made * 2 : null,
     pointsFrom3: isKnown(input.fg3Made) ? input.fg3Made * 3 : null,
     pointsFromFt: isKnown(input.ftMade) ? input.ftMade : null,
+    evaluation,
   };
 }
 
@@ -126,6 +191,67 @@ export function checkPointsConsistency(
   if (computedPoints === null || !isKnown(officialPoints)) return null;
   const diff = computedPoints - officialPoints;
   return { consistent: diff === 0, diff };
+}
+
+/**
+ * Ratio de rebonds offensifs = RO équipe / (tirs ratés équipe + 0.44 × LF tentés équipe) × 100.
+ * Approxime la part des rebonds offensifs captés parmi les occasions de rebond disponibles.
+ * Retourne null si une des valeurs n'est pas renseignée ou si le dénominateur est nul.
+ */
+export function computeOffensiveReboundRatio(
+  teamReboundsOff: Maybe<number>,
+  teamFgMissed: Maybe<number>,
+  teamFtAttempted: Maybe<number>,
+): number | null {
+  if (!isKnown(teamReboundsOff) || !isKnown(teamFgMissed) || !isKnown(teamFtAttempted)) return null;
+  const denominator = teamFgMissed + STATS_CONFIG.tsFreeThrowCoefficient * teamFtAttempted;
+  if (denominator <= 0) return null;
+  return (teamReboundsOff / denominator) * 100;
+}
+
+/**
+ * Ratio de rebonds défensifs = RD équipe / (RD équipe + RO adversaire) × 100.
+ * Mesure la part des rebonds défensifs disponibles captés par l'équipe.
+ * Retourne null si une des deux valeurs n'est pas renseignée ou si le total est nul.
+ */
+export function computeDefensiveReboundRatio(
+  teamReboundsDef: Maybe<number>,
+  opponentReboundsOff: Maybe<number>,
+): number | null {
+  if (!isKnown(teamReboundsDef) || !isKnown(opponentReboundsOff)) return null;
+  const total = teamReboundsDef + opponentReboundsOff;
+  if (total <= 0) return null;
+  return (teamReboundsDef / total) * 100;
+}
+
+/**
+ * Ratio de balles perdues (Four Factors) = TO / (FGA + 0.44 × FTA + TO) × 100.
+ * Approxime la part des possessions terminées par une perte de balle.
+ * Retourne null si une des valeurs n'est pas renseignée ou si le dénominateur est nul.
+ */
+export function computeTurnoverRatio(
+  turnovers: Maybe<number>,
+  fgAttempted: Maybe<number>,
+  ftAttempted: Maybe<number>,
+): number | null {
+  if (!isKnown(turnovers) || !isKnown(fgAttempted) || !isKnown(ftAttempted)) return null;
+  const denominator = fgAttempted + STATS_CONFIG.tsFreeThrowCoefficient * ftAttempted + turnovers;
+  if (denominator <= 0) return null;
+  return (turnovers / denominator) * 100;
+}
+
+/**
+ * Un ratio atteint son objectif s'il est supérieur ou égal au seuil ("plus haut = mieux",
+ * ex: rebonds offensifs) ou inférieur ou égal au seuil ("plus bas = mieux", ex: balles perdues).
+ * Retourne null si le ratio n'est pas calculable.
+ */
+export function isTargetMet(
+  ratio: number | null,
+  target: number,
+  direction: "higher-is-better" | "lower-is-better",
+): boolean | null {
+  if (ratio === null) return null;
+  return direction === "higher-is-better" ? ratio >= target : ratio <= target;
 }
 
 export { isKnown };
