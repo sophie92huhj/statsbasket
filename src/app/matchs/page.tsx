@@ -53,7 +53,7 @@ export default async function MatchesPage() {
                   <td className="px-4 py-2">{opponent.name}</td>
                   <td className="px-4 py-2 text-muted">{match.isHome ? "Domicile" : "Extérieur"}</td>
                   <td className="px-4 py-2 tabular-nums">
-                    {ownScore ?? "—"} – {opponentScore ?? "—"}
+                    {match.homeScore ?? "—"} – {match.awayScore ?? "—"}
                   </td>
                   <td className="px-4 py-2 tabular-nums">
                     {diff !== null ? (diff > 0 ? `+${diff}` : formatNumber(diff)) : "—"}

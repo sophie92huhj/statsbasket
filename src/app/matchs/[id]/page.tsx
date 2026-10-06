@@ -138,7 +138,7 @@ export default async function MatchDetailPage({ params }: { params: Promise<{ id
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-        <KpiCard label="Score" value={`${ownScore ?? "—"} – ${opponentScore ?? "—"}`} />
+        <KpiCard label="Score" value={`${match.homeScore ?? "—"} – ${match.awayScore ?? "—"}`} />
         <KpiCard
           label="Différentiel"
           value={diff !== null ? (diff > 0 ? `+${diff}` : diff) : "—"}

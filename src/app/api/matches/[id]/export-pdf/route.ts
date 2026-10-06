@@ -11,14 +11,12 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const match = await getMatch(id);
   if (!match) return NextResponse.json({ error: "Match introuvable" }, { status: 404 });
 
-  const ownScore = match.isHome ? match.homeScore : match.awayScore;
-  const opponentScore = match.isHome ? match.awayScore : match.homeScore;
   const opponent = match.isHome ? match.awayTeam : match.homeTeam;
 
   const pdfBytes = await generateMatchStatsPdf({
     title: `vs ${opponent.name}`,
     subtitle: `${formatDate(match.date)}${match.competition ? ` · ${match.competition}` : ""} · ${match.season.label}`,
-    score: `${ownScore ?? "—"} – ${opponentScore ?? "—"}`,
+    score: `${match.homeScore ?? "—"} – ${match.awayScore ?? "—"}`,
     players: match.playerStats.map((s) => ({
       jerseyNumber: s.jerseyNumber,
       starter: s.starter,
