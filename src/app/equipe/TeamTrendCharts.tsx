@@ -61,7 +61,7 @@ export function TeamTrendCharts({
 
   const barData = playerPoints.slice(0, 12).map((p) => ({
     joueuse: p.firstName,
-    points: p.totalPoints,
+    points: p.pointsPerGame !== null ? Math.round(p.pointsPerGame * 10) / 10 : null,
   }));
 
   return (
@@ -109,7 +109,7 @@ export function TeamTrendCharts({
 
       {barData.length > 0 && (
         <Card className="lg:col-span-2">
-          <h2 className="mb-3 text-sm font-semibold">Points par joueuse (saison)</h2>
+          <h2 className="mb-3 text-sm font-semibold">Points par joueuse (moyenne / match)</h2>
           <ResponsiveContainer width="100%" height={280}>
             <BarChart data={barData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid stroke={CHART_GRID} vertical={false} />

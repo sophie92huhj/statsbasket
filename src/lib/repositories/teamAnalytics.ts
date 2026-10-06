@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db/client";
 import { computeMatchOutcome } from "@/lib/repositories/match";
 import type { TeamMatchAggregateInput } from "@/lib/stats/teamSeasonStats";
+import { perGame } from "@/lib/stats/aggregate";
 
 export interface TeamAnalyticsFilters {
   seasonId?: string;
@@ -61,16 +62,25 @@ export interface PlayerSeasonPoints {
   playerId: string;
   firstName: string;
   lastName: string;
-  totalPoints: number;
+  pointsPerGame: number | null;
 }
 
-/** Points cumulés sur la saison, par joueuse de l'équipe (pour le graphique "points par joueuse"). */
+interface PlayerPointsAccumulator {
+  playerId: string;
+  firstName: string;
+  lastName: string;
+  totalPoints: number;
+  gamesPlayed: number;
+}
+
+/** Points de moyenne par match joué sur la saison, par joueuse de l'équipe (pour le graphique "points par joueuse"). */
 export async function getPlayerPointsForTeamSeason(
   teamId: string,
   filters: TeamAnalyticsFilters = {},
 ): Promise<PlayerSeasonPoints[]> {
   const stats = await prisma.playerMatchStat.findMany({
     where: {
+      dnp: false,
       match: {
         seasonId: filters.seasonId,
         OR: [{ homeTeamId: teamId }, { awayTeamId: teamId }],
@@ -79,7 +89,7 @@ export async function getPlayerPointsForTeamSeason(
     include: { player: true },
   });
 
-  const totals = new Map<string, PlayerSeasonPoints>();
+  const totals = new Map<string, PlayerPointsAccumulator>();
   for (const s of stats) {
     const points =
       s.fg2Made !== null && s.fg3Made !== null && s.ftMade !== null
@@ -89,15 +99,24 @@ export async function getPlayerPointsForTeamSeason(
     const existing = totals.get(s.playerId);
     if (existing) {
       existing.totalPoints += points;
+      existing.gamesPlayed += 1;
     } else {
       totals.set(s.playerId, {
         playerId: s.playerId,
         firstName: s.player.firstName,
         lastName: s.player.lastName,
         totalPoints: points,
+        gamesPlayed: 1,
       });
     }
   }
 
-  return [...totals.values()].sort((a, b) => b.totalPoints - a.totalPoints);
+  return [...totals.values()]
+    .map((t) => ({
+      playerId: t.playerId,
+      firstName: t.firstName,
+      lastName: t.lastName,
+      pointsPerGame: perGame(t.totalPoints, t.gamesPlayed),
+    }))
+    .sort((a, b) => (b.pointsPerGame ?? 0) - (a.pointsPerGame ?? 0));
 }
