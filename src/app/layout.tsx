@@ -5,6 +5,10 @@ import { AuthProvider } from "@/lib/auth/AuthContext";
 import { ThemeScript } from "@/components/ThemeScript";
 import "./globals.css";
 
+// Toutes les pages lisent la base : sans ça, Next pré-rend au build les pages sans
+// paramètre dynamique (ex: /matchs) et les nouvelles données n'apparaissent jamais en prod.
+export const dynamic = "force-dynamic";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
