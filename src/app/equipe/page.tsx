@@ -72,7 +72,17 @@ export default async function TeamPage({
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <h1 className="font-display text-3xl font-semibold tracking-wide">{ownTeam.name}</h1>
-        <SeasonSelector seasons={seasons} currentSeasonId={seasonFilter} />
+        <div className="flex items-center gap-3">
+          <a
+            href={`/api/teams/${ownTeam.id}/export-pdf${seasonFilter ? `?saison=${seasonFilter}` : ""}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-md border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground transition-colors hover:bg-accent-soft"
+          >
+            Exporter en PDF
+          </a>
+          <SeasonSelector seasons={seasons} currentSeasonId={seasonFilter} />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">

@@ -127,6 +127,27 @@ function aggregateMatches(matches: TeamMatchAggregateInput[]): TeamSeasonSummary
   };
 }
 
+/** Adresse de l'équipe sur un seul match (cumul des lignes joueuses ayant joué). */
+export function teamMatchShooting(match: TeamMatchAggregateInput) {
+  const played = match.playerLines.filter((l) => !l.dnp);
+  return deriveLine({
+    fg2Made: sum(played.map((l) => l.fg2Made)),
+    fg2Att: sum(played.map((l) => l.fg2Att)),
+    fg3Made: sum(played.map((l) => l.fg3Made)),
+    fg3Att: sum(played.map((l) => l.fg3Att)),
+    ftMade: sum(played.map((l) => l.ftMade)),
+    ftAtt: sum(played.map((l) => l.ftAtt)),
+    reboundsOff: null,
+    reboundsDef: null,
+    assists: null,
+    steals: null,
+    turnovers: null,
+    blocks: null,
+    foulsCommitted: null,
+    foulsDrawn: null,
+  });
+}
+
 export function summarizeTeamSeason(matches: TeamMatchAggregateInput[]): TeamSeasonSummary {
   return aggregateMatches(matches);
 }

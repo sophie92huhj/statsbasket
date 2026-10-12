@@ -53,12 +53,32 @@ export function EditMatchPanel({
 
   if (!isAdmin) return null;
 
+  async function handleDelete() {
+    if (!confirm("Supprimer ce match ? Toutes ses statistiques et documents associés seront supprimés.")) return;
+    setError(null);
+    setSubmitting(true);
+    try {
+      await apiFetch(`/api/matches/${matchId}`, { method: "DELETE" });
+      router.push("/matchs");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur inconnue");
+      setSubmitting(false);
+    }
+  }
+
   if (!editing) {
     return (
-      <div>
-        <Button type="button" variant="secondary" onClick={() => setEditing(true)}>
-          Modifier le match
-        </Button>
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap gap-3">
+          <Button type="button" variant="secondary" onClick={() => setEditing(true)} disabled={submitting}>
+            Modifier le match
+          </Button>
+          <Button type="button" variant="danger" onClick={handleDelete} disabled={submitting}>
+            Supprimer le match
+          </Button>
+        </div>
+        {error && <p className="text-sm text-loss">{error}</p>}
       </div>
     );
   }

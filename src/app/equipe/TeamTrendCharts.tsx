@@ -16,9 +16,7 @@ import {
 import { Card } from "@/components/ui/Card";
 import { ChartTooltip } from "@/components/charts/ChartTooltip";
 import { CHART_AXIS, CHART_COLORS, CHART_GRID } from "@/components/charts/theme";
-import { deriveLine } from "@/lib/stats/derive";
-import { sum } from "@/lib/stats/aggregate";
-import type { TeamMatchAggregateInput } from "@/lib/stats/teamSeasonStats";
+import { teamMatchShooting, type TeamMatchAggregateInput } from "@/lib/stats/teamSeasonStats";
 import type { PlayerSeasonPoints } from "@/lib/repositories/teamAnalytics";
 
 function formatShortDate(date: Date): string {
@@ -33,23 +31,7 @@ export function TeamTrendCharts({
   playerPoints: PlayerSeasonPoints[];
 }) {
   const trendData = matches.map((m) => {
-    const played = m.playerLines.filter((l) => !l.dnp);
-    const derived = deriveLine({
-      fg2Made: sum(played.map((l) => l.fg2Made)),
-      fg2Att: sum(played.map((l) => l.fg2Att)),
-      fg3Made: sum(played.map((l) => l.fg3Made)),
-      fg3Att: sum(played.map((l) => l.fg3Att)),
-      ftMade: sum(played.map((l) => l.ftMade)),
-      ftAtt: sum(played.map((l) => l.ftAtt)),
-      reboundsOff: null,
-      reboundsDef: null,
-      assists: null,
-      steals: null,
-      turnovers: null,
-      blocks: null,
-      foulsCommitted: null,
-      foulsDrawn: null,
-    });
+    const derived = teamMatchShooting(m);
     return {
       match: formatShortDate(m.matchDate),
       diff: m.ownScore !== null && m.opponentScore !== null ? m.ownScore - m.opponentScore : null,
