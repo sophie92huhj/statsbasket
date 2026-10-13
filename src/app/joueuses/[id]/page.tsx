@@ -88,7 +88,11 @@ export default async function PlayerDetailPage({
 
       {hasGames && (
         <>
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            <Card className="flex flex-col gap-1">
+              <span className="text-xs font-medium uppercase tracking-wide text-muted">Éval / match</span>
+              <span className="text-2xl font-semibold tabular-nums">{formatNumber(summary.perGame.evaluation, 1)}</span>
+            </Card>
             <Card className="flex flex-col gap-1">
               <span className="text-xs font-medium uppercase tracking-wide text-muted">Points / match</span>
               <span className="text-2xl font-semibold tabular-nums">{formatNumber(summary.perGame.points, 1)}</span>

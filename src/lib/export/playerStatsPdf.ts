@@ -33,6 +33,7 @@ export async function generatePlayerStatsPdf(input: PlayerStatsPdfInput): Promis
   pdf.drawSectionTitle("Vue d'ensemble");
   pdf.drawTileGrid(
     [
+      { label: "Éval / match", value: formatNumber(input.summary.perGame.evaluation, 1) },
       {
         label: "Points / match",
         value: formatNumber(input.summary.perGame.points, 1),
@@ -42,7 +43,7 @@ export async function generatePlayerStatsPdf(input: PlayerStatsPdfInput): Promis
       { label: "Passes D / match", value: formatNumber(input.summary.perGame.assists, 1) },
       { label: "Temps de jeu moyen", value: formatSecondsAsClock(input.summary.perGame.secondsPlayed) },
     ],
-    4,
+    5,
     64,
   );
 

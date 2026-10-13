@@ -89,6 +89,19 @@ describe("summarizePlayerSeason (§18, §19)", () => {
     expect(summary.bests.points).toEqual({ value: 24, matchId: "m2", matchDate: new Date("2025-10-08") });
   });
 
+  it("calcule l'éval moyenne par match joué, en ignorant les matchs à l'éval non calculable", () => {
+    const complete = { fg2Att: 0, fg3Made: 0, fg3Att: 0, ftMade: 0, ftAtt: 0, reboundsOff: 0, reboundsDef: 0, assists: 0, steals: 0, turnovers: 0, blocks: 0 };
+    const lines = [
+      match({ matchId: "m1", ...complete, fg2Made: 5, fg2Att: 8, reboundsDef: 4, turnovers: 2 }), // 10 + 4 - 3 - 2 = 9
+      match({ matchId: "m2", ...complete, fg2Made: 2, fg2Att: 2, assists: 3 }), // 4 + 3 = 7
+      match({ matchId: "m3", fg2Made: 6, fg3Made: 0, ftMade: 0 }), // éval non calculable (stats manquantes)
+      match({ matchId: "m4", dnp: true }),
+    ];
+    const summary = summarizePlayerSeason(lines);
+    expect(summary.totals.evaluation).toBe(16);
+    expect(summary.perGame.evaluation).toBe(8);
+  });
+
   it("fournit une distribution (médiane, écart-type) sur les points", () => {
     const lines = [
       match({ matchId: "m1", fg2Made: 5, fg3Made: 0, ftMade: 0 }), // 10

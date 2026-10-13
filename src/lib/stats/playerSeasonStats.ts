@@ -18,6 +18,7 @@ export interface PlayerSeasonSummary {
 
   totals: {
     points: number | null;
+    evaluation: number | null;
     fg2Made: number | null;
     fg2Att: number | null;
     fg3Made: number | null;
@@ -38,6 +39,8 @@ export interface PlayerSeasonSummary {
 
   perGame: {
     points: number | null;
+    /** Moyenne sur les matchs joués dont l'éval est calculable (une stat manquante exclut le match). */
+    evaluation: number | null;
     reboundsTotal: number | null;
     assists: number | null;
     steals: number | null;
@@ -106,6 +109,7 @@ export function summarizePlayerSeason(lines: PlayerMatchInput[]): PlayerSeasonSu
   const derivedLines = played.map((l) => ({ line: l, derived: deriveLine(l) }));
 
   const totalPoints = sum(derivedLines.map((d) => d.derived.points));
+  const evaluations = derivedLines.map((d) => d.derived.evaluation);
   const totalFg2Made = sum(played.map((l) => l.fg2Made));
   const totalFg2Att = sum(played.map((l) => l.fg2Att));
   const totalFg3Made = sum(played.map((l) => l.fg3Made));
@@ -150,6 +154,7 @@ export function summarizePlayerSeason(lines: PlayerMatchInput[]): PlayerSeasonSu
     gamesInRoster: lines.length,
     totals: {
       points: totalPoints,
+      evaluation: sum(evaluations),
       fg2Made: totalFg2Made,
       fg2Att: totalFg2Att,
       fg3Made: totalFg3Made,
@@ -169,6 +174,7 @@ export function summarizePlayerSeason(lines: PlayerMatchInput[]): PlayerSeasonSu
     },
     perGame: {
       points: perGame(totalPoints, gamesPlayed),
+      evaluation: mean(evaluations),
       reboundsTotal: perGame(totalReboundsTotal, gamesPlayed),
       assists: perGame(totalAssists, gamesPlayed),
       steals: perGame(totalSteals, gamesPlayed),
