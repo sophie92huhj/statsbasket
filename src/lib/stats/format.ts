@@ -5,13 +5,23 @@
 
 const DASH = "—";
 
-/** Formate un pourcentage : "60,0 %" ou "—" si non calculable (jamais "0 %" par défaut). */
-export function formatPct(pct: number | null, decimals = 1): string {
+/** Nombre de décimales de toutes les statistiques non entières (moyennes, %, ratios). */
+export const STAT_DECIMALS = 2;
+
+/** Arrondit une statistique à STAT_DECIMALS décimales (données de graphiques). Null conservé. */
+export function roundStat(value: number | null): number | null {
+  if (value === null) return null;
+  const factor = 10 ** STAT_DECIMALS;
+  return Math.round(value * factor) / factor;
+}
+
+/** Formate un pourcentage : "60,00 %" ou "—" si non calculable (jamais "0 %" par défaut). */
+export function formatPct(pct: number | null, decimals = STAT_DECIMALS): string {
   if (pct === null) return DASH;
   return `${pct.toFixed(decimals).replace(".", ",")} %`;
 }
 
-/** Formate un split tirs : "6 / 10 — 60,0 %". */
+/** Formate un split tirs : "6 / 10 — 60,00 %". */
 export function formatSplit(made: number | null, attempted: number | null, pct: number | null): string {
   if (made === null || attempted === null) return DASH;
   return `${made} / ${attempted} — ${formatPct(pct)}`;

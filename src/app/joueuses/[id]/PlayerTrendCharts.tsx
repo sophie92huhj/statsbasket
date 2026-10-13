@@ -6,6 +6,7 @@ import { ChartTooltip } from "@/components/charts/ChartTooltip";
 import { CHART_AXIS, CHART_COLORS, CHART_GRID } from "@/components/charts/theme";
 import { deriveLine } from "@/lib/stats/derive";
 import type { PlayerMatchInput } from "@/lib/stats/playerSeasonStats";
+import { roundStat } from "@/lib/stats/format";
 
 function formatShortDate(date: Date): string {
   return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "2-digit" }).format(date);
@@ -22,9 +23,9 @@ export function PlayerTrendCharts({ lines }: { lines: PlayerMatchInput[] }) {
       points: derived.points,
       rebonds: derived.reboundsTotal,
       passes: line.assists,
-      fg2: derived.fg2.pct !== null ? Math.round(derived.fg2.pct * 10) / 10 : null,
-      fg3: derived.fg3.pct !== null ? Math.round(derived.fg3.pct * 10) / 10 : null,
-      ft: derived.ft.pct !== null ? Math.round(derived.ft.pct * 10) / 10 : null,
+      fg2: roundStat(derived.fg2.pct),
+      fg3: roundStat(derived.fg3.pct),
+      ft: roundStat(derived.ft.pct),
     };
   });
 

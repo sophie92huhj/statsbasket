@@ -41,6 +41,8 @@ export interface PlayerSeasonSummary {
     points: number | null;
     /** Moyenne sur les matchs joués dont l'éval est calculable (une stat manquante exclut le match). */
     evaluation: number | null;
+    reboundsOff: number | null;
+    reboundsDef: number | null;
     reboundsTotal: number | null;
     assists: number | null;
     steals: number | null;
@@ -175,6 +177,8 @@ export function summarizePlayerSeason(lines: PlayerMatchInput[]): PlayerSeasonSu
     perGame: {
       points: perGame(totalPoints, gamesPlayed),
       evaluation: mean(evaluations),
+      reboundsOff: perGame(totalReboundsOff, gamesPlayed),
+      reboundsDef: perGame(totalReboundsDef, gamesPlayed),
       reboundsTotal: perGame(totalReboundsTotal, gamesPlayed),
       assists: perGame(totalAssists, gamesPlayed),
       steals: perGame(totalSteals, gamesPlayed),

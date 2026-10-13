@@ -3,6 +3,7 @@ import { computeMatchOutcome, computePointDifferential } from "@/lib/repositorie
 import { Card } from "@/components/ui/Card";
 import { NewMatchButton } from "./NewMatchButton";
 import { MatchRow } from "./MatchRow";
+import { ExportTotalsButton } from "./ExportTotalsButton";
 
 function formatDate(date: Date): string {
   return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(date);
@@ -18,7 +19,18 @@ export default async function MatchesPage() {
           <h1 className="font-display text-3xl font-semibold tracking-wide">Matchs</h1>
           <p className="text-sm text-muted">Historique des matchs, toutes saisons.</p>
         </div>
-        <NewMatchButton />
+        <div className="flex items-center gap-3">
+          <ExportTotalsButton
+            matches={matches.map((match) => ({
+              id: match.id,
+              date: formatDate(match.date),
+              opponentName: (match.isHome ? match.awayTeam : match.homeTeam).name,
+              location: match.isHome ? "Domicile" : "Extérieur",
+              score: `${match.homeScore ?? "—"} – ${match.awayScore ?? "—"}`,
+            }))}
+          />
+          <NewMatchButton />
+        </div>
       </div>
 
       <Card className="overflow-x-auto p-0">

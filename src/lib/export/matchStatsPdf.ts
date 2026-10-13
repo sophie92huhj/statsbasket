@@ -27,6 +27,29 @@ export interface MatchStatsPdfInput {
   teamStats?: TeamStatTile[];
 }
 
+export interface StatsTableColumn {
+  key: string;
+  label: string;
+  width: number;
+  align: "left" | "center";
+}
+
+/**
+ * Fiche "tableau de stats" en A4 paysage : en-tête (titre, sous-titre, valeur à droite),
+ * tableau joueuses + ligne de total, puis tuiles de statistiques d'équipe.
+ * La colonne de clé "eval" est mise en avant (gras rouge).
+ */
+export interface StatsTablePdfInput {
+  title: string;
+  subtitle: string;
+  headerRight: string; // ex: le score du match
+  columns: readonly StatsTableColumn[];
+  rows: Record<string, string>[];
+  totalsRow?: Record<string, string>;
+  teamStatsTitle: string;
+  teamStats?: TeamStatTile[];
+}
+
 // Mêmes colonnes et mêmes libellés que le tableau de saisie (StatsGrid.tsx),
 // pour que l'export PDF soit identique à l'interface.
 const COLUMNS = [
@@ -47,7 +70,7 @@ const COLUMNS = [
   { key: "fp", label: "F", width: 34, align: "center" },
   { key: "fr", label: "FP", width: 34, align: "center" },
   { key: "eval", label: "ÉVAL", width: 44, align: "center" },
-] as const;
+] as const satisfies readonly StatsTableColumn[];
 
 type ColumnKey = (typeof COLUMNS)[number]["key"];
 
@@ -141,7 +164,22 @@ function totalsRowValues(players: MatchStatsPlayerRow[]): Record<ColumnKey, stri
   };
 }
 
-export async function generateMatchStatsPdf(input: MatchStatsPdfInput): Promise<Uint8Array> {
+export function generateMatchStatsPdf(input: MatchStatsPdfInput): Promise<Uint8Array> {
+  const sortedPlayers = sortByJerseyThenName(input.players);
+  return generateStatsTablePdf({
+    title: input.title,
+    subtitle: input.subtitle,
+    headerRight: input.score,
+    columns: COLUMNS,
+    rows: sortedPlayers.map(rowValues),
+    totalsRow: sortedPlayers.length > 0 ? totalsRowValues(sortedPlayers) : undefined,
+    teamStatsTitle: "Statistiques d'équipe",
+    teamStats: input.teamStats,
+  });
+}
+
+export async function generateStatsTablePdf(input: StatsTablePdfInput): Promise<Uint8Array> {
+  const COLUMNS = input.columns;
   const doc = await PDFDocument.create();
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const boldFont = await doc.embedFont(StandardFonts.HelveticaBold);
@@ -170,11 +208,11 @@ export async function generateMatchStatsPdf(input: MatchStatsPdfInput): Promise<
   let y = pageHeight - margin;
 
   const titleSize = 19;
-  page.drawText(input.title, { x: margin, y: y - titleSize * 0.8, size: titleSize, font: boldFont, color: black });
+  page.drawText(toWinAnsiSafe(input.title), { x: margin, y: y - titleSize * 0.8, size: titleSize, font: boldFont, color: black });
 
   const scoreSize = 19;
-  const scoreWidth = boldFont.widthOfTextAtSize(input.score, scoreSize);
-  page.drawText(input.score, {
+  const scoreWidth = boldFont.widthOfTextAtSize(input.headerRight, scoreSize);
+  page.drawText(input.headerRight, {
     x: pageWidth - margin - scoreWidth,
     y: y - scoreSize * 0.8,
     size: scoreSize,
@@ -183,7 +221,7 @@ export async function generateMatchStatsPdf(input: MatchStatsPdfInput): Promise<
   });
 
   y -= titleSize + 10;
-  page.drawText(input.subtitle, { x: margin, y, size: 10, font, color: gray });
+  page.drawText(toWinAnsiSafe(input.subtitle), { x: margin, y, size: 10, font, color: gray });
   y -= 12;
 
   page.drawLine({
@@ -194,7 +232,6 @@ export async function generateMatchStatsPdf(input: MatchStatsPdfInput): Promise<
   });
   y -= 18;
 
-  const sortedPlayers = sortByJerseyThenName(input.players);
   const headerRowHeight = 18;
   const rowHeight = 15;
 
@@ -222,7 +259,7 @@ export async function generateMatchStatsPdf(input: MatchStatsPdfInput): Promise<
     return startY - headerRowHeight;
   }
 
-  function drawDataRow(startY: number, values: Record<ColumnKey, string>, options: { zebra?: boolean; totals?: boolean } = {}) {
+  function drawDataRow(startY: number, values: Record<string, string>, options: { zebra?: boolean; totals?: boolean } = {}) {
     const bg = options.totals ? totalsBg : options.zebra ? zebraBg : null;
     if (bg) {
       page.drawRectangle({ x: tableX, y: startY - rowHeight, width: tableWidth, height: rowHeight, color: bg });
@@ -231,7 +268,7 @@ export async function generateMatchStatsPdf(input: MatchStatsPdfInput): Promise<
     const rowFont = options.totals ? boldFont : font;
     for (const col of COLUMNS) {
       const isEval = col.key === "eval";
-      const text = values[col.key];
+      const text = toWinAnsiSafe(values[col.key] ?? "");
       const size = 7.5;
       const cellFont = isEval ? boldFont : rowFont;
       const textWidth = cellFont.widthOfTextAtSize(text, size);
@@ -281,29 +318,26 @@ export async function generateMatchStatsPdf(input: MatchStatsPdfInput): Promise<
   let tableTop = y;
   y = startTableOnPage(tableTop);
 
-  const totalRows = sortedPlayers.length + (sortedPlayers.length > 0 ? 1 : 0);
-  let rowsDrawnOnPage = 0;
+  const totalRows = input.rows.length + (input.totalsRow ? 1 : 0);
 
-  function drawOneRow(values: Record<ColumnKey, string>, options: { zebra?: boolean; totals?: boolean }) {
+  function drawOneRow(values: Record<string, string>, options: { zebra?: boolean; totals?: boolean }) {
     if (y < margin + rowHeight) {
       finishPage(tableTop, y);
       page = doc.addPage([pageWidth, pageHeight]);
       tableTop = pageHeight - margin;
       y = startTableOnPage(tableTop);
-      rowsDrawnOnPage = 0;
     }
     drawDataRow(y, values, options);
     y -= rowHeight;
     drawHorizontalRule(y);
-    rowsDrawnOnPage += 1;
   }
 
-  sortedPlayers.forEach((player, index) => {
-    drawOneRow(rowValues(player), { zebra: index % 2 === 1 });
+  input.rows.forEach((values, index) => {
+    drawOneRow(values, { zebra: index % 2 === 1 });
   });
 
-  if (sortedPlayers.length > 0) {
-    drawOneRow(totalsRowValues(sortedPlayers), { totals: true });
+  if (input.totalsRow) {
+    drawOneRow(input.totalsRow, { totals: true });
   }
 
   if (totalRows > 0) {
@@ -340,7 +374,7 @@ export async function generateMatchStatsPdf(input: MatchStatsPdfInput): Promise<
     });
     y -= sectionGap;
 
-    page.drawText("Statistiques d'équipe", { x: tableX, y: y - 10, size: 13, font: boldFont, color: black });
+    page.drawText(toWinAnsiSafe(input.teamStatsTitle), { x: tableX, y: y - 10, size: 13, font: boldFont, color: black });
     y -= sectionTitleHeight;
 
     // Les tuiles s'étirent pour remplir la hauteur disponible jusqu'en bas de page.

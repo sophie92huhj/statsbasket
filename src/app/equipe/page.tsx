@@ -3,7 +3,7 @@ import { listSeasons } from "@/lib/repositories/season";
 import { getPlayerPointsForTeamSeason, getTeamMatchAggregateInputs } from "@/lib/repositories/teamAnalytics";
 import { splitTeamMatches, summarizeTeamSeason } from "@/lib/stats/teamSeasonStats";
 import type { TeamSeasonSummary } from "@/lib/stats/teamSeasonStats";
-import { formatNumber, formatPct } from "@/lib/stats/format";
+import { formatNumber, formatPct, STAT_DECIMALS } from "@/lib/stats/format";
 import { Card, KpiCard } from "@/components/ui/Card";
 import { StatRow } from "@/components/stats/StatsTable";
 import { SeasonSelector } from "./SeasonSelector";
@@ -15,14 +15,14 @@ function SummaryCard({ title, summary }: { title: string; summary: TeamSeasonSum
     <Card>
       <h2 className="mb-2 text-sm font-semibold">{title}</h2>
       <StatRow label="Matchs" value={summary.gamesPlayed} sublabel={`${summary.wins}V - ${summary.losses}D`} />
-      <StatRow label="Points marqués / match" value={formatNumber(summary.pointsFor.perGame, 1)} />
-      <StatRow label="Points encaissés / match" value={formatNumber(summary.pointsAgainst.perGame, 1)} />
-      <StatRow label="Différentiel / match" value={formatNumber(summary.pointDifferential.perGame, 1)} />
+      <StatRow label="Points marqués / match" value={formatNumber(summary.pointsFor.perGame, STAT_DECIMALS)} />
+      <StatRow label="Points encaissés / match" value={formatNumber(summary.pointsAgainst.perGame, STAT_DECIMALS)} />
+      <StatRow label="Différentiel / match" value={formatNumber(summary.pointDifferential.perGame, STAT_DECIMALS)} />
       <StatRow label="% au tir" value={formatPct(summary.shooting.fgPct)} />
       <StatRow label="3PT%" value={formatPct(summary.shooting.fg3Pct)} />
-      <StatRow label="Rebonds / match" value={formatNumber(summary.perGameStats.reboundsTotal, 1)} />
-      <StatRow label="Passes D / match" value={formatNumber(summary.perGameStats.assists, 1)} />
-      <StatRow label="Balles perdues / match" value={formatNumber(summary.perGameStats.turnovers, 1)} />
+      <StatRow label="Rebonds / match" value={formatNumber(summary.perGameStats.reboundsTotal, STAT_DECIMALS)} />
+      <StatRow label="Passes D / match" value={formatNumber(summary.perGameStats.assists, STAT_DECIMALS)} />
+      <StatRow label="Balles perdues / match" value={formatNumber(summary.perGameStats.turnovers, STAT_DECIMALS)} />
     </Card>
   );
 }
@@ -89,7 +89,7 @@ export default async function TeamPage({
         <KpiCard label="Matchs" value={overall.gamesPlayed} />
         <KpiCard label="Victoires" value={overall.wins} />
         <KpiCard label="Défaites" value={overall.losses} />
-        <KpiCard label="Diff. / match" value={formatNumber(overall.pointDifferential.perGame, 1)} />
+        <KpiCard label="Diff. / match" value={formatNumber(overall.pointDifferential.perGame, STAT_DECIMALS)} />
       </div>
 
       <SummaryCard title="Saison complète" summary={overall} />

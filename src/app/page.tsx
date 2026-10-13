@@ -5,7 +5,7 @@ import { getPlayerPointsForTeamSeason, getTeamMatchAggregateInputs } from "@/lib
 import { summarizeTeamSeason } from "@/lib/stats/teamSeasonStats";
 import { KpiCard } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Form";
-import { formatNumber } from "@/lib/stats/format";
+import { formatNumber, STAT_DECIMALS } from "@/lib/stats/format";
 import { TeamTrendCharts } from "@/app/equipe/TeamTrendCharts";
 
 export default async function Home() {
@@ -59,8 +59,8 @@ export default async function Home() {
         <KpiCard label="Matchs" value={summary.gamesPlayed} />
         <KpiCard label="Victoires" value={summary.wins} />
         <KpiCard label="Défaites" value={summary.losses} />
-        <KpiCard label="Pts / match" value={formatNumber(summary.pointsFor.perGame, 1)} />
-        <KpiCard label="Pts encaissés / match" value={formatNumber(summary.pointsAgainst.perGame, 1)} />
+        <KpiCard label="Pts / match" value={formatNumber(summary.pointsFor.perGame, STAT_DECIMALS)} />
+        <KpiCard label="Pts encaissés / match" value={formatNumber(summary.pointsAgainst.perGame, STAT_DECIMALS)} />
       </div>
 
       {summary.gamesPlayed === 0 ? (

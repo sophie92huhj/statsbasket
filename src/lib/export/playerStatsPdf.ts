@@ -1,5 +1,5 @@
 import { deriveLine } from "@/lib/stats/derive";
-import { formatNumber, formatPct, formatSecondsAsClock } from "@/lib/stats/format";
+import { formatNumber, formatPct, formatSecondsAsClock, STAT_DECIMALS, roundStat } from "@/lib/stats/format";
 import type { PlayerMatchInput, PlayerSeasonSummary } from "@/lib/stats/playerSeasonStats";
 import {
   CHART_COLORS,
@@ -33,14 +33,14 @@ export async function generatePlayerStatsPdf(input: PlayerStatsPdfInput): Promis
   pdf.drawSectionTitle("Vue d'ensemble");
   pdf.drawTileGrid(
     [
-      { label: "Éval / match", value: formatNumber(input.summary.perGame.evaluation, 1) },
+      { label: "Éval / match", value: formatNumber(input.summary.perGame.evaluation, STAT_DECIMALS) },
       {
         label: "Points / match",
-        value: formatNumber(input.summary.perGame.points, 1),
+        value: formatNumber(input.summary.perGame.points, STAT_DECIMALS),
         sublabel: `${formatOrDash(input.summary.totals.points)} pts au total`,
       },
-      { label: "Rebonds / match", value: formatNumber(input.summary.perGame.reboundsTotal, 1) },
-      { label: "Passes D / match", value: formatNumber(input.summary.perGame.assists, 1) },
+      { label: "Rebonds / match", value: formatNumber(input.summary.perGame.reboundsTotal, STAT_DECIMALS) },
+      { label: "Passes D / match", value: formatNumber(input.summary.perGame.assists, STAT_DECIMALS) },
       { label: "Temps de jeu moyen", value: formatSecondsAsClock(input.summary.perGame.secondsPlayed) },
     ],
     5,
@@ -64,12 +64,12 @@ export async function generatePlayerStatsPdf(input: PlayerStatsPdfInput): Promis
   const rightBottom = pdf.drawStatTable("Régularité", MARGIN + colWidth + colGap, colWidth, colStartY, [
     {
       label: "Points : médiane",
-      value: formatNumber(input.summary.distributions.points.median, 1),
+      value: formatNumber(input.summary.distributions.points.median, STAT_DECIMALS),
       sublabel: `min ${formatNumber(input.summary.distributions.points.min)} · max ${formatNumber(input.summary.distributions.points.max)}`,
     },
-    { label: "Points : écart-type", value: formatNumber(input.summary.distributions.points.stdDev, 1) },
-    { label: "Rebonds : médiane", value: formatNumber(input.summary.distributions.reboundsTotal.median, 1) },
-    { label: "Passes D : médiane", value: formatNumber(input.summary.distributions.assists.median, 1) },
+    { label: "Points : écart-type", value: formatNumber(input.summary.distributions.points.stdDev, STAT_DECIMALS) },
+    { label: "Rebonds : médiane", value: formatNumber(input.summary.distributions.reboundsTotal.median, STAT_DECIMALS) },
+    { label: "Passes D : médiane", value: formatNumber(input.summary.distributions.assists.median, STAT_DECIMALS) },
   ]);
   pdf.y = Math.min(leftBottom, rightBottom);
 
@@ -86,9 +86,9 @@ export async function generatePlayerStatsPdf(input: PlayerStatsPdfInput): Promis
         points: derived.points,
         rebonds: derived.reboundsTotal,
         passes: line.assists ?? null,
-        fg2: derived.fg2.pct !== null ? Math.round(derived.fg2.pct * 10) / 10 : null,
-        fg3: derived.fg3.pct !== null ? Math.round(derived.fg3.pct * 10) / 10 : null,
-        ft: derived.ft.pct !== null ? Math.round(derived.ft.pct * 10) / 10 : null,
+        fg2: roundStat(derived.fg2.pct),
+        fg3: roundStat(derived.fg3.pct),
+        ft: roundStat(derived.ft.pct),
       };
     });
 

@@ -1,4 +1,4 @@
-import { formatNumber, formatPct } from "@/lib/stats/format";
+import { formatNumber, formatPct, STAT_DECIMALS, roundStat } from "@/lib/stats/format";
 import { teamMatchShooting, type TeamMatchAggregateInput, type TeamSeasonSummary } from "@/lib/stats/teamSeasonStats";
 import type { PlayerSeasonPoints } from "@/lib/repositories/teamAnalytics";
 import { CHART_COLORS, CONTENT_WIDTH, MARGIN, PdfLayout, SECTION_GAP, type Chart } from "./pdfLayout";
@@ -9,10 +9,6 @@ export interface TeamStatsPdfInput {
   summary: TeamSeasonSummary;
   matches: TeamMatchAggregateInput[]; // triés par date croissante
   playerPoints: PlayerSeasonPoints[]; // triés par points / match décroissants
-}
-
-function roundPct(pct: number | null): number | null {
-  return pct !== null ? Math.round(pct * 10) / 10 : null;
 }
 
 export async function generateTeamStatsPdf(input: TeamStatsPdfInput): Promise<Uint8Array> {
@@ -30,7 +26,7 @@ export async function generateTeamStatsPdf(input: TeamStatsPdfInput): Promise<Ui
       { label: "Matchs", value: String(summary.gamesPlayed) },
       { label: "Victoires", value: String(summary.wins) },
       { label: "Défaites", value: String(summary.losses) },
-      { label: "Diff. / match", value: formatNumber(summary.pointDifferential.perGame, 1) },
+      { label: "Diff. / match", value: formatNumber(summary.pointDifferential.perGame, STAT_DECIMALS) },
     ],
     4,
     64,
@@ -46,16 +42,16 @@ export async function generateTeamStatsPdf(input: TeamStatsPdfInput): Promise<Ui
   const colStartY = pdf.y;
   const leftBottom = pdf.drawStatTable("Résultats", MARGIN, colWidth, colStartY, [
     { label: "Matchs", value: String(summary.gamesPlayed), sublabel: `${summary.wins}V - ${summary.losses}D` },
-    { label: "Points marqués / match", value: formatNumber(summary.pointsFor.perGame, 1) },
-    { label: "Points encaissés / match", value: formatNumber(summary.pointsAgainst.perGame, 1) },
-    { label: "Différentiel / match", value: formatNumber(summary.pointDifferential.perGame, 1) },
+    { label: "Points marqués / match", value: formatNumber(summary.pointsFor.perGame, STAT_DECIMALS) },
+    { label: "Points encaissés / match", value: formatNumber(summary.pointsAgainst.perGame, STAT_DECIMALS) },
+    { label: "Différentiel / match", value: formatNumber(summary.pointDifferential.perGame, STAT_DECIMALS) },
   ]);
   const rightBottom = pdf.drawStatTable("Adresse & jeu", MARGIN + colWidth + colGap, colWidth, colStartY, [
     { label: "% au tir", value: formatPct(summary.shooting.fgPct) },
     { label: "3PT%", value: formatPct(summary.shooting.fg3Pct) },
-    { label: "Rebonds / match", value: formatNumber(summary.perGameStats.reboundsTotal, 1) },
-    { label: "Passes D / match", value: formatNumber(summary.perGameStats.assists, 1) },
-    { label: "Balles perdues / match", value: formatNumber(summary.perGameStats.turnovers, 1) },
+    { label: "Rebonds / match", value: formatNumber(summary.perGameStats.reboundsTotal, STAT_DECIMALS) },
+    { label: "Passes D / match", value: formatNumber(summary.perGameStats.assists, STAT_DECIMALS) },
+    { label: "Balles perdues / match", value: formatNumber(summary.perGameStats.turnovers, STAT_DECIMALS) },
   ]);
   pdf.y = Math.min(leftBottom, rightBottom);
 
@@ -66,8 +62,8 @@ export async function generateTeamStatsPdf(input: TeamStatsPdfInput): Promise<Ui
   const hasTrends = input.matches.length >= 2;
   const bars = input.playerPoints.slice(0, 12).map((p) => ({
     label: p.firstName,
-    value: p.pointsPerGame !== null ? Math.round(p.pointsPerGame * 10) / 10 : null,
-    display: formatNumber(p.pointsPerGame, 1),
+    value: roundStat(p.pointsPerGame),
+    display: formatNumber(p.pointsPerGame, STAT_DECIMALS),
   }));
   const hasBars = bars.some((b) => b.value !== null);
   if (!hasTrends && !hasBars) return pdf.save();
@@ -84,9 +80,9 @@ export async function generateTeamStatsPdf(input: TeamStatsPdfInput): Promise<Ui
       const shooting = teamMatchShooting(m);
       return {
         diff: m.ownScore !== null && m.opponentScore !== null ? m.ownScore - m.opponentScore : null,
-        fg2: roundPct(shooting.fg2.pct),
-        fg3: roundPct(shooting.fg3.pct),
-        ft: roundPct(shooting.ft.pct),
+        fg2: roundStat(shooting.fg2.pct),
+        fg3: roundStat(shooting.fg3.pct),
+        ft: roundStat(shooting.ft.pct),
       };
     });
 

@@ -4,7 +4,7 @@ import { listTeamSeasons } from "@/lib/repositories/team";
 import { listSeasons } from "@/lib/repositories/season";
 import { getPlayerMatchLines } from "@/lib/repositories/playerAnalytics";
 import { summarizePlayerSeason } from "@/lib/stats/playerSeasonStats";
-import { formatNumber, formatPct, formatSecondsAsClock } from "@/lib/stats/format";
+import { formatNumber, formatPct, formatSecondsAsClock, STAT_DECIMALS } from "@/lib/stats/format";
 import { Card } from "@/components/ui/Card";
 import { StatRow } from "@/components/stats/StatsTable";
 import { PlayerInfoForm } from "./PlayerInfoForm";
@@ -91,22 +91,22 @@ export default async function PlayerDetailPage({
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
             <Card className="flex flex-col gap-1">
               <span className="text-xs font-medium uppercase tracking-wide text-muted">Éval / match</span>
-              <span className="text-2xl font-semibold tabular-nums">{formatNumber(summary.perGame.evaluation, 1)}</span>
+              <span className="text-2xl font-semibold tabular-nums">{formatNumber(summary.perGame.evaluation, STAT_DECIMALS)}</span>
             </Card>
             <Card className="flex flex-col gap-1">
               <span className="text-xs font-medium uppercase tracking-wide text-muted">Points / match</span>
-              <span className="text-2xl font-semibold tabular-nums">{formatNumber(summary.perGame.points, 1)}</span>
+              <span className="text-2xl font-semibold tabular-nums">{formatNumber(summary.perGame.points, STAT_DECIMALS)}</span>
               <span className="text-xs text-muted">{summary.totals.points} pts au total</span>
             </Card>
             <Card className="flex flex-col gap-1">
               <span className="text-xs font-medium uppercase tracking-wide text-muted">Rebonds / match</span>
               <span className="text-2xl font-semibold tabular-nums">
-                {formatNumber(summary.perGame.reboundsTotal, 1)}
+                {formatNumber(summary.perGame.reboundsTotal, STAT_DECIMALS)}
               </span>
             </Card>
             <Card className="flex flex-col gap-1">
               <span className="text-xs font-medium uppercase tracking-wide text-muted">Passes D / match</span>
-              <span className="text-2xl font-semibold tabular-nums">{formatNumber(summary.perGame.assists, 1)}</span>
+              <span className="text-2xl font-semibold tabular-nums">{formatNumber(summary.perGame.assists, STAT_DECIMALS)}</span>
             </Card>
             <Card className="flex flex-col gap-1">
               <span className="text-xs font-medium uppercase tracking-wide text-muted">Temps de jeu moyen</span>
@@ -129,17 +129,17 @@ export default async function PlayerDetailPage({
               <h2 className="mb-2 text-sm font-semibold">Régularité</h2>
               <StatRow
                 label="Points : médiane"
-                value={formatNumber(summary.distributions.points.median, 1)}
+                value={formatNumber(summary.distributions.points.median, STAT_DECIMALS)}
                 sublabel={`min ${formatNumber(summary.distributions.points.min)} · max ${formatNumber(
                   summary.distributions.points.max,
                 )}`}
               />
-              <StatRow label="Points : écart-type" value={formatNumber(summary.distributions.points.stdDev, 1)} />
+              <StatRow label="Points : écart-type" value={formatNumber(summary.distributions.points.stdDev, STAT_DECIMALS)} />
               <StatRow
                 label="Rebonds : médiane"
-                value={formatNumber(summary.distributions.reboundsTotal.median, 1)}
+                value={formatNumber(summary.distributions.reboundsTotal.median, STAT_DECIMALS)}
               />
-              <StatRow label="Passes D : médiane" value={formatNumber(summary.distributions.assists.median, 1)} />
+              <StatRow label="Passes D : médiane" value={formatNumber(summary.distributions.assists.median, STAT_DECIMALS)} />
             </Card>
           </div>
 

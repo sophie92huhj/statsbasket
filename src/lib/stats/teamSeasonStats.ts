@@ -2,7 +2,7 @@
 // À partir des lignes individuelles cumulées (les stats d'équipe "officielles"
 // quand disponibles sont gérées séparément, voir TeamMatchStat).
 
-import { deriveLine, isKnown } from "./derive";
+import { computeDefensiveReboundRatio, deriveLine, isKnown } from "./derive";
 import { perGame, sum } from "./aggregate";
 import type { RawPlayerStatLine } from "./types";
 import type { MatchOutcome } from "@/lib/repositories/match";
@@ -127,25 +127,53 @@ function aggregateMatches(matches: TeamMatchAggregateInput[]): TeamSeasonSummary
   };
 }
 
+/**
+ * Ligne d'équipe d'un match : cumul des lignes des joueuses ayant joué. Même forme
+ * qu'une ligne joueuse, pour pouvoir réutiliser deriveLine / summarizePlayerSeason.
+ */
+export function teamMatchLine(match: TeamMatchAggregateInput): RawPlayerStatLine {
+  const played = match.playerLines.filter((l) => !l.dnp);
+  const total = (pick: (l: RawPlayerStatLine) => number | null | undefined) => sum(played.map(pick));
+  return {
+    dnp: false,
+    secondsPlayed: total((l) => l.secondsPlayed),
+    fg2Made: total((l) => l.fg2Made),
+    fg2Att: total((l) => l.fg2Att),
+    fg3Made: total((l) => l.fg3Made),
+    fg3Att: total((l) => l.fg3Att),
+    ftMade: total((l) => l.ftMade),
+    ftAtt: total((l) => l.ftAtt),
+    reboundsOff: total((l) => l.reboundsOff),
+    reboundsDef: total((l) => l.reboundsDef),
+    assists: total((l) => l.assists),
+    steals: total((l) => l.steals),
+    turnovers: total((l) => l.turnovers),
+    blocks: total((l) => l.blocks),
+    foulsCommitted: total((l) => l.foulsCommitted),
+    foulsDrawn: total((l) => l.foulsDrawn),
+    officialPoints: null,
+  };
+}
+
 /** Adresse de l'équipe sur un seul match (cumul des lignes joueuses ayant joué). */
 export function teamMatchShooting(match: TeamMatchAggregateInput) {
-  const played = match.playerLines.filter((l) => !l.dnp);
-  return deriveLine({
-    fg2Made: sum(played.map((l) => l.fg2Made)),
-    fg2Att: sum(played.map((l) => l.fg2Att)),
-    fg3Made: sum(played.map((l) => l.fg3Made)),
-    fg3Att: sum(played.map((l) => l.fg3Att)),
-    ftMade: sum(played.map((l) => l.ftMade)),
-    ftAtt: sum(played.map((l) => l.ftAtt)),
-    reboundsOff: null,
-    reboundsDef: null,
-    assists: null,
-    steals: null,
-    turnovers: null,
-    blocks: null,
-    foulsCommitted: null,
-    foulsDrawn: null,
-  });
+  return deriveLine(teamMatchLine(match));
+}
+
+/**
+ * Ratio de rebonds défensifs sur plusieurs matchs, calculé sur le cumul des seuls
+ * matchs où les rebonds défensifs de l'équipe ET les rebonds offensifs adverses sont
+ * connus (un match incomplet est exclu plutôt que compté comme 0).
+ */
+export function cumulativeDefensiveReboundRatio(
+  entries: { teamReboundsDef: number | null; opponentReboundsOff: number | null }[],
+): number | null {
+  const complete = entries.filter((e) => isKnown(e.teamReboundsDef) && isKnown(e.opponentReboundsOff));
+  if (complete.length === 0) return null;
+  return computeDefensiveReboundRatio(
+    sum(complete.map((e) => e.teamReboundsDef)),
+    sum(complete.map((e) => e.opponentReboundsOff)),
+  );
 }
 
 export function summarizeTeamSeason(matches: TeamMatchAggregateInput[]): TeamSeasonSummary {

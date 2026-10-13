@@ -3,7 +3,7 @@ import { formatPct, formatSecondsAsClock, formatSplit, parseMinutesSeconds } fro
 
 describe("formatPct (§40 — N/A plutôt que 0%)", () => {
   it("formate un pourcentage connu", () => {
-    expect(formatPct(60)).toBe("60,0 %");
+    expect(formatPct(60)).toBe("60,00 %");
   });
 
   it("affiche — quand non calculable", () => {
@@ -13,7 +13,7 @@ describe("formatPct (§40 — N/A plutôt que 0%)", () => {
 
 describe("formatSplit (§6, §7, §8)", () => {
   it("formate un split tirs comme dans le cahier des charges", () => {
-    expect(formatSplit(6, 10, 60)).toBe("6 / 10 — 60,0 %");
+    expect(formatSplit(6, 10, 60)).toBe("6 / 10 — 60,00 %");
   });
 });
 

@@ -18,6 +18,7 @@ import { ChartTooltip } from "@/components/charts/ChartTooltip";
 import { CHART_AXIS, CHART_COLORS, CHART_GRID } from "@/components/charts/theme";
 import { teamMatchShooting, type TeamMatchAggregateInput } from "@/lib/stats/teamSeasonStats";
 import type { PlayerSeasonPoints } from "@/lib/repositories/teamAnalytics";
+import { roundStat } from "@/lib/stats/format";
 
 function formatShortDate(date: Date): string {
   return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "2-digit" }).format(date);
@@ -35,15 +36,15 @@ export function TeamTrendCharts({
     return {
       match: formatShortDate(m.matchDate),
       diff: m.ownScore !== null && m.opponentScore !== null ? m.ownScore - m.opponentScore : null,
-      fg2: derived.fg2.pct !== null ? Math.round(derived.fg2.pct * 10) / 10 : null,
-      fg3: derived.fg3.pct !== null ? Math.round(derived.fg3.pct * 10) / 10 : null,
-      ft: derived.ft.pct !== null ? Math.round(derived.ft.pct * 10) / 10 : null,
+      fg2: roundStat(derived.fg2.pct),
+      fg3: roundStat(derived.fg3.pct),
+      ft: roundStat(derived.ft.pct),
     };
   });
 
   const barData = playerPoints.slice(0, 12).map((p) => ({
     joueuse: p.firstName,
-    points: p.pointsPerGame !== null ? Math.round(p.pointsPerGame * 10) / 10 : null,
+    points: roundStat(p.pointsPerGame),
   }));
 
   return (
