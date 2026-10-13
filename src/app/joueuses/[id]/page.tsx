@@ -4,9 +4,8 @@ import { listTeamSeasons } from "@/lib/repositories/team";
 import { listSeasons } from "@/lib/repositories/season";
 import { getPlayerMatchLines } from "@/lib/repositories/playerAnalytics";
 import { summarizePlayerSeason } from "@/lib/stats/playerSeasonStats";
-import { formatNumber, formatPct, formatSecondsAsClock, STAT_DECIMALS } from "@/lib/stats/format";
+import { formatMadeAttempted, formatNumber, formatPct, formatSecondsAsClock, STAT_DECIMALS } from "@/lib/stats/format";
 import { Card } from "@/components/ui/Card";
-import { StatRow } from "@/components/stats/StatsTable";
 import { PlayerInfoForm } from "./PlayerInfoForm";
 import { PlayerTrendCharts } from "./PlayerTrendCharts";
 import { RosterForm } from "./RosterForm";
@@ -116,32 +115,51 @@ export default async function PlayerDetailPage({
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <Card>
-              <h2 className="mb-2 text-sm font-semibold">Adresse</h2>
-              <StatRow label="2PT%" value={formatPct(summary.shooting.fg2Pct)} />
-              <StatRow label="3PT%" value={formatPct(summary.shooting.fg3Pct)} />
-              <StatRow label="LF%" value={formatPct(summary.shooting.ftPct)} />
-              <StatRow label="% au tir" value={formatPct(summary.shooting.fgPct)} />
-            </Card>
-
-            <Card>
-              <h2 className="mb-2 text-sm font-semibold">Régularité</h2>
-              <StatRow
-                label="Points : médiane"
-                value={formatNumber(summary.distributions.points.median, STAT_DECIMALS)}
-                sublabel={`min ${formatNumber(summary.distributions.points.min)} · max ${formatNumber(
-                  summary.distributions.points.max,
-                )}`}
-              />
-              <StatRow label="Points : écart-type" value={formatNumber(summary.distributions.points.stdDev, STAT_DECIMALS)} />
-              <StatRow
-                label="Rebonds : médiane"
-                value={formatNumber(summary.distributions.reboundsTotal.median, STAT_DECIMALS)}
-              />
-              <StatRow label="Passes D : médiane" value={formatNumber(summary.distributions.assists.median, STAT_DECIMALS)} />
-            </Card>
-          </div>
+          <Card>
+            <h2 className="mb-2 text-sm font-semibold">Adresse</h2>
+            {(() => {
+              const shots = [
+                { label: "2PT", pct: summary.shooting.fg2Pct, made: summary.totals.fg2Made, att: summary.totals.fg2Att },
+                { label: "3PT", pct: summary.shooting.fg3Pct, made: summary.totals.fg3Made, att: summary.totals.fg3Att },
+                { label: "Total tirs", pct: summary.shooting.fgPct, made: summary.totals.fgMade, att: summary.totals.fgAtt },
+                { label: "LF", pct: summary.shooting.ftPct, made: summary.totals.ftMade, att: summary.totals.ftAtt },
+              ];
+              return (
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[420px] table-fixed text-sm">
+                    <thead>
+                      <tr className="border-b border-border text-xs uppercase tracking-wide text-muted">
+                        <th className="w-1/4 py-2 text-left font-medium" />
+                        {shots.map((shot) => (
+                          <th key={shot.label} className="py-2 text-center font-medium">
+                            {shot.label}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b border-border">
+                        <td className="py-2 text-muted">%</td>
+                        {shots.map((shot) => (
+                          <td key={shot.label} className="py-2 text-center text-base font-semibold tabular-nums">
+                            {formatPct(shot.pct)}
+                          </td>
+                        ))}
+                      </tr>
+                      <tr>
+                        <td className="py-2 text-muted">Réussis / tentés</td>
+                        {shots.map((shot) => (
+                          <td key={shot.label} className="py-2 text-center tabular-nums text-muted">
+                            {formatMadeAttempted(shot.made, shot.att)}
+                          </td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })()}
+          </Card>
 
           <PlayerTrendCharts lines={lines} />
 

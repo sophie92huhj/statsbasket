@@ -25,6 +25,8 @@ export interface PlayerSeasonSummary {
     fg3Att: number | null;
     ftMade: number | null;
     ftAtt: number | null;
+    fgMade: number | null; // 2PT + 3PT
+    fgAtt: number | null;
     reboundsOff: number | null;
     reboundsDef: number | null;
     reboundsTotal: number | null;
@@ -163,6 +165,8 @@ export function summarizePlayerSeason(lines: PlayerMatchInput[]): PlayerSeasonSu
       fg3Att: totalFg3Att,
       ftMade: totalFtMade,
       ftAtt: totalFtAtt,
+      fgMade: seasonAggregateShooting.fg.made,
+      fgAtt: seasonAggregateShooting.fg.attempted,
       reboundsOff: totalReboundsOff,
       reboundsDef: totalReboundsDef,
       reboundsTotal: totalReboundsTotal,

@@ -80,6 +80,12 @@ export interface TableRow {
   sublabel?: string;
 }
 
+export interface TableColumn {
+  label: string;
+  width: number;
+  align: "left" | "center";
+}
+
 export interface ChartSeries {
   label: string;
   color: RGB;
@@ -277,6 +283,52 @@ export class PdfLayout {
 
     // Bordure extérieure du tableau (haut déjà fermé par le fond coloré de l'en-tête).
     page.drawLine({ start: { x, y: startY }, end: { x: x + width, y: startY }, thickness: 0.5, color: borderGray });
+    page.drawLine({ start: { x, y: startY }, end: { x, y: rowY }, thickness: 0.5, color: borderGray });
+    page.drawLine({ start: { x: x + width, y: startY }, end: { x: x + width, y: rowY }, thickness: 0.5, color: borderGray });
+
+    return rowY;
+  }
+
+  /**
+   * Tableau à colonnes (même style que drawStatTable) : les libellés de colonnes sont
+   * dans l'en-tête coloré, la 1re colonne est un libellé, les suivantes des valeurs
+   * en gras. Renvoie l'ordonnée du bas du tableau.
+   */
+  drawColumnTable(x: number, startY: number, columns: TableColumn[], rows: string[][]): number {
+    const { page, font, boldFont } = this;
+    const headerHeight = 24;
+    const rowHeight = 22;
+    const width = columns.reduce((acc, c) => acc + c.width, 0);
+    let rowY = startY;
+
+    function drawCell(text: string, col: TableColumn, colX: number, textY: number, size: number, cellFont: PDFFont, color: RGB) {
+      const safe = toWinAnsiSafe(text);
+      const textX = col.align === "center" ? colX + (col.width - cellFont.widthOfTextAtSize(safe, size)) / 2 : colX + 10;
+      page.drawText(safe, { x: textX, y: textY, size, font: cellFont, color });
+    }
+
+    page.drawRectangle({ x, y: rowY - headerHeight, width, height: headerHeight, color: headerBg });
+    let colX = x;
+    columns.forEach((col) => {
+      drawCell(col.label.toUpperCase(), col, colX, rowY - headerHeight / 2 - 3, 8, boldFont, white);
+      colX += col.width;
+    });
+    rowY -= headerHeight;
+
+    rows.forEach((cells, index) => {
+      if (index % 2 === 1) {
+        page.drawRectangle({ x, y: rowY - rowHeight, width, height: rowHeight, color: zebraBg });
+      }
+      colX = x;
+      columns.forEach((col, colIndex) => {
+        const isLabel = colIndex === 0;
+        drawCell(cells[colIndex] ?? "", col, colX, rowY - 14, isLabel ? 9 : 10, isLabel ? font : boldFont, black);
+        colX += col.width;
+      });
+      rowY -= rowHeight;
+      page.drawLine({ start: { x, y: rowY }, end: { x: x + width, y: rowY }, thickness: 0.5, color: borderGray });
+    });
+
     page.drawLine({ start: { x, y: startY }, end: { x, y: rowY }, thickness: 0.5, color: borderGray });
     page.drawLine({ start: { x: x + width, y: startY }, end: { x: x + width, y: rowY }, thickness: 0.5, color: borderGray });
 

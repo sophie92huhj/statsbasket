@@ -1,5 +1,5 @@
 import { deriveLine } from "@/lib/stats/derive";
-import { formatNumber, formatPct, formatSecondsAsClock, STAT_DECIMALS, roundStat } from "@/lib/stats/format";
+import { formatMadeAttempted, formatNumber, formatPct, formatSecondsAsClock, STAT_DECIMALS, roundStat } from "@/lib/stats/format";
 import type { PlayerMatchInput, PlayerSeasonSummary } from "@/lib/stats/playerSeasonStats";
 import {
   CHART_COLORS,
@@ -48,30 +48,32 @@ export async function generatePlayerStatsPdf(input: PlayerStatsPdfInput): Promis
   );
 
   // ---------------------------------------------------------------------------
-  // Adresse / Régularité : deux vrais tableaux côte à côte (en-tête coloré, zebra).
+  // Adresse : pourcentage + cumul réussis/tentés (en-tête coloré, zebra).
   // ---------------------------------------------------------------------------
   pdf.ensureSpace(140);
   pdf.y -= SECTION_GAP;
-  const colGap = 20;
-  const colWidth = (CONTENT_WIDTH - colGap) / 2;
-  const colStartY = pdf.y;
-  const leftBottom = pdf.drawStatTable("Adresse", MARGIN, colWidth, colStartY, [
-    { label: "2PT%", value: formatPct(input.summary.shooting.fg2Pct) },
-    { label: "3PT%", value: formatPct(input.summary.shooting.fg3Pct) },
-    { label: "LF%", value: formatPct(input.summary.shooting.ftPct) },
-    { label: "% au tir", value: formatPct(input.summary.shooting.fgPct) },
-  ]);
-  const rightBottom = pdf.drawStatTable("Régularité", MARGIN + colWidth + colGap, colWidth, colStartY, [
-    {
-      label: "Points : médiane",
-      value: formatNumber(input.summary.distributions.points.median, STAT_DECIMALS),
-      sublabel: `min ${formatNumber(input.summary.distributions.points.min)} · max ${formatNumber(input.summary.distributions.points.max)}`,
-    },
-    { label: "Points : écart-type", value: formatNumber(input.summary.distributions.points.stdDev, STAT_DECIMALS) },
-    { label: "Rebonds : médiane", value: formatNumber(input.summary.distributions.reboundsTotal.median, STAT_DECIMALS) },
-    { label: "Passes D : médiane", value: formatNumber(input.summary.distributions.assists.median, STAT_DECIMALS) },
-  ]);
-  pdf.y = Math.min(leftBottom, rightBottom);
+  const { shooting, totals } = input.summary;
+  // Un type de tir par colonne, deux lignes (% puis cumul réussis/tentés).
+  const shots = [
+    { label: "2PT", pct: shooting.fg2Pct, made: totals.fg2Made, att: totals.fg2Att },
+    { label: "3PT", pct: shooting.fg3Pct, made: totals.fg3Made, att: totals.fg3Att },
+    { label: "Total tirs", pct: shooting.fgPct, made: totals.fgMade, att: totals.fgAtt },
+    { label: "LF", pct: shooting.ftPct, made: totals.ftMade, att: totals.ftAtt },
+  ];
+  const labelColWidth = 131;
+  const shotColWidth = (CONTENT_WIDTH - labelColWidth) / shots.length;
+  pdf.y = pdf.drawColumnTable(
+    MARGIN,
+    pdf.y,
+    [
+      { label: "Adresse", width: labelColWidth, align: "left" },
+      ...shots.map((s) => ({ label: s.label, width: shotColWidth, align: "center" as const })),
+    ],
+    [
+      ["%", ...shots.map((s) => formatPct(s.pct))],
+      ["Réussis / tentés", ...shots.map((s) => formatMadeAttempted(s.made, s.att))],
+    ],
+  );
 
   // ---------------------------------------------------------------------------
   // Graphiques d'évolution par journée jouée.

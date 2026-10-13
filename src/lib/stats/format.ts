@@ -21,6 +21,12 @@ export function formatPct(pct: number | null, decimals = STAT_DECIMALS): string 
   return `${pct.toFixed(decimals).replace(".", ",")} %`;
 }
 
+/** Formate un cumul de tirs réussis / tentés : "20/40", "—" si non renseigné. */
+export function formatMadeAttempted(made: number | null, attempted: number | null): string {
+  if (made === null || attempted === null) return DASH;
+  return `${made}/${attempted}`;
+}
+
 /** Formate un split tirs : "6 / 10 — 60,00 %". */
 export function formatSplit(made: number | null, attempted: number | null, pct: number | null): string {
   if (made === null || attempted === null) return DASH;

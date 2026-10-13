@@ -10,19 +10,20 @@ import {
   teamMatchLine,
 } from "@/lib/stats/teamSeasonStats";
 import { computeOffensiveReboundRatio, computeTurnoverRatio, isTargetMet } from "@/lib/stats/derive";
-import { formatNumber, formatPct, formatSecondsAsClock, STAT_DECIMALS } from "@/lib/stats/format";
+import { formatMadeAttempted, formatNumber, formatPct, formatSecondsAsClock, STAT_DECIMALS } from "@/lib/stats/format";
 
 // Pas de colonne N° : le numéro d'une joueuse peut changer d'un match à l'autre.
 const COLUMNS = [
-  { key: "name", label: "Joueuse", width: 150, align: "left" },
+  { key: "name", label: "Joueuse", width: 130, align: "left" },
   { key: "gp", label: "MJ", width: 32, align: "center" },
   { key: "min", label: "MIN", width: 46, align: "center" },
   { key: "pts", label: "PTS", width: 40, align: "center" },
-  { key: "fg2", label: "2PT", width: 54, align: "center" },
-  { key: "fg3", label: "3PT", width: 54, align: "center" },
-  { key: "ft", label: "LF", width: 54, align: "center" },
+  { key: "fg2", label: "2PT", width: 50, align: "center" },
+  { key: "fg3", label: "3PT", width: 50, align: "center" },
+  { key: "ft", label: "LF", width: 50, align: "center" },
   { key: "ro", label: "RO", width: 34, align: "center" },
   { key: "rd", label: "RD", width: 34, align: "center" },
+  { key: "reb", label: "REB", width: 36, align: "center" },
   { key: "ast", label: "PD", width: 34, align: "center" },
   { key: "stl", label: "INT", width: 34, align: "center" },
   { key: "ctr", label: "CTR", width: 34, align: "center" },
@@ -31,11 +32,6 @@ const COLUMNS = [
   { key: "fr", label: "FP", width: 34, align: "center" },
   { key: "eval", label: "ÉVAL", width: 44, align: "center" },
 ] as const satisfies readonly StatsTableColumn[];
-
-function formatMadeAttempted(made: number | null, attempted: number | null): string {
-  if (made === null || attempted === null) return "—";
-  return `${made}/${attempted}`;
-}
 
 function formatSigned(value: number | null): string {
   if (value === null) return "—";
@@ -60,6 +56,7 @@ function rowValues(name: string, summary: PlayerSeasonSummary): Record<string, s
     ft: formatMadeAttempted(totals.ftMade, totals.ftAtt),
     ro: formatNumber(perGame.reboundsOff, STAT_DECIMALS),
     rd: formatNumber(perGame.reboundsDef, STAT_DECIMALS),
+    reb: formatNumber(perGame.reboundsTotal, STAT_DECIMALS),
     ast: formatNumber(perGame.assists, STAT_DECIMALS),
     stl: formatNumber(perGame.steals, STAT_DECIMALS),
     ctr: formatNumber(perGame.blocks, STAT_DECIMALS),
@@ -86,7 +83,13 @@ export async function GET(request: Request) {
   const playerRows = players
     .map((p) => ({ player: p, summary: summarizePlayerSeason(p.lines) }))
     .filter(({ summary }) => summary.gamesPlayed > 0)
-    .sort((a, b) => a.player.lastName.localeCompare(b.player.lastName) || a.player.firstName.localeCompare(b.player.firstName))
+    // Classement par éval moyenne décroissante ; éval non calculable en fin de tableau.
+    .sort((a, b) => {
+      const evalA = a.summary.perGame.evaluation;
+      const evalB = b.summary.perGame.evaluation;
+      if (evalA === null || evalB === null) return (evalA === null ? 1 : 0) - (evalB === null ? 1 : 0);
+      return evalB - evalA;
+    })
     .map(({ player, summary }) => rowValues(`${player.firstName} ${player.lastName}`, summary));
 
   // Ligne "équipe" : chaque match devient une ligne cumulant les joueuses, puis on

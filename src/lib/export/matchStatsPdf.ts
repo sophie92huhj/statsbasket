@@ -1,7 +1,7 @@
 import { PDFDocument, StandardFonts, rgb, type RGB } from "pdf-lib";
 import { deriveLine } from "@/lib/stats/derive";
 import { sum } from "@/lib/stats/aggregate";
-import { formatSecondsAsClock } from "@/lib/stats/format";
+import { formatMadeAttempted, formatSecondsAsClock } from "@/lib/stats/format";
 import type { Maybe, RawPlayerStatLine } from "@/lib/stats/types";
 
 export interface MatchStatsPlayerRow extends RawPlayerStatLine {
@@ -78,11 +78,6 @@ type ColumnKey = (typeof COLUMNS)[number]["key"];
 // on les remplace par des équivalents compatibles avant de dessiner le texte.
 function toWinAnsiSafe(text: string): string {
   return text.replace(/≥/g, ">=").replace(/≤/g, "<=").replace(/✓/g, "X");
-}
-
-function formatMadeAttempted(made: number | null, attempted: number | null): string {
-  if (made === null || attempted === null) return "—";
-  return `${made}/${attempted}`;
 }
 
 function formatOrDash(value: Maybe<number>): string {
