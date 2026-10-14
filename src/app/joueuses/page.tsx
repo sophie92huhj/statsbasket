@@ -1,16 +1,18 @@
 import Link from "next/link";
 import { listPlayers } from "@/lib/repositories/player";
+import { requireTeamSession } from "@/lib/auth/session";
 import { Card } from "@/components/ui/Card";
 import { NewPlayerForm } from "./NewPlayerForm";
 
 export default async function PlayersPage() {
-  const players = await listPlayers();
+  const { teamId } = await requireTeamSession();
+  const players = await listPlayers(teamId);
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-3xl font-semibold tracking-wide">Joueuses</h1>
-        <p className="text-sm text-muted">Effectif suivi, toutes équipes et saisons confondues.</p>
+        <p className="text-sm text-muted">Effectif suivi, toutes saisons confondues.</p>
       </div>
 
       <NewPlayerForm />

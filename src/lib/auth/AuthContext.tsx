@@ -1,51 +1,59 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { ADMIN_PASSWORD } from "./constants";
+import { createContext, useContext, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 
-const STORAGE_KEY = "statsbasket_role";
-const STORAGE_VALUE = "admin";
+// État d'accès côté interface. La source de vérité est le cookie de session vérifié par le
+// serveur (src/lib/auth/session.ts) : ces valeurs ne servent qu'à adapter l'affichage.
 
 interface AuthContextValue {
   isAdmin: boolean;
-  login: (password: string) => boolean;
-  logout: () => void;
+  /** Équipe suivie en cours de consultation (null sur la page d'entrée). */
+  teamName: string | null;
+  login: (password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
+  /** Quitte l'équipe en cours et revient à la page d'entrée. */
+  leaveTeam: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAdmin, setIsAdmin] = useState(false);
+export function AuthProvider({
+  isAdmin,
+  teamName,
+  children,
+}: {
+  isAdmin: boolean;
+  teamName: string | null;
+  children: ReactNode;
+}) {
+  const router = useRouter();
 
-  useEffect(() => {
-    try {
-      setIsAdmin(sessionStorage.getItem(STORAGE_KEY) === STORAGE_VALUE);
-    } catch {
-      // sessionStorage indisponible (navigation privée stricte) : reste en mode invité.
-    }
-  }, []);
-
-  function login(password: string): boolean {
-    if (password !== ADMIN_PASSWORD) return false;
-    try {
-      sessionStorage.setItem(STORAGE_KEY, STORAGE_VALUE);
-    } catch {
-      // ignore
-    }
-    setIsAdmin(true);
+  async function login(password: string): Promise<boolean> {
+    const res = await fetch("/api/auth/admin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password }),
+    });
+    if (!res.ok) return false;
+    router.refresh();
     return true;
   }
 
-  function logout() {
-    try {
-      sessionStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // ignore
-    }
-    setIsAdmin(false);
+  async function logout() {
+    await fetch("/api/auth/admin", { method: "DELETE" });
+    router.refresh();
   }
 
-  return <AuthContext.Provider value={{ isAdmin, login, logout }}>{children}</AuthContext.Provider>;
+  async function leaveTeam() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/connexion");
+    router.refresh();
+  }
+
+  return (
+    <AuthContext.Provider value={{ isAdmin, teamName, login, logout, leaveTeam }}>{children}</AuthContext.Provider>
+  );
 }
 
 export function useAuth(): AuthContextValue {

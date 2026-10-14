@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Button, Label, TextInput } from "@/components/ui/Form";
 import { useAuth } from "@/lib/auth/AuthContext";
@@ -10,10 +11,10 @@ export function AdminAccessPanel() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    const success = login(password);
+    const success = await login(password);
     if (!success) {
       setError("Mot de passe incorrect.");
       return;
@@ -26,7 +27,7 @@ export function AdminAccessPanel() {
       <Card className="flex flex-col gap-3 lg:col-span-2">
         <h2 className="text-sm font-semibold">Accès admin</h2>
         <p className="text-sm text-muted">
-          Vous êtes en <strong className="text-win">mode admin</strong> pour cette session de navigateur. Vous
+          Vous êtes en <strong className="text-win">mode admin</strong>. Vous
           pouvez ajouter, modifier et supprimer des données.
         </p>
         <div>
@@ -34,6 +35,13 @@ export function AdminAccessPanel() {
             Repasser en mode invité
           </Button>
         </div>
+        <p className="text-sm text-muted">
+          Pour créer une nouvelle équipe ou changer le mot de passe d&apos;une équipe :{" "}
+          <Link href="/gestion" className="text-accent-text hover:underline">
+            gestion des équipes
+          </Link>
+          .
+        </p>
       </Card>
     );
   }

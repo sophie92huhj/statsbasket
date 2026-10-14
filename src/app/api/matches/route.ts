@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createMatch, listMatches } from "@/lib/repositories/match";
+import { requireApiSession } from "@/lib/auth/session";
+import { createMatch, listMatches, matchReferencesBelongToTeam } from "@/lib/repositories/match";
 import { prisma } from "@/lib/db/client";
 
 const createMatchSchema = z.object({
@@ -19,16 +20,23 @@ const createMatchSchema = z.object({
 });
 
 export async function GET(request: Request) {
+  const auth = await requireApiSession();
+  if (auth instanceof NextResponse) return auth;
   const seasonId = new URL(request.url).searchParams.get("seasonId") ?? undefined;
-  const matches = await listMatches(seasonId);
+  const matches = await listMatches(auth.teamId, seasonId);
   return NextResponse.json(matches);
 }
 
 export async function POST(request: Request) {
+  const auth = await requireApiSession({ admin: true });
+  if (auth instanceof NextResponse) return auth;
   const body = await request.json();
   const parsed = createMatchSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+  }
+  if (!(await matchReferencesBelongToTeam(auth.teamId, parsed.data))) {
+    return NextResponse.json({ error: "Saison ou équipes invalides pour cette équipe." }, { status: 400 });
   }
 
   // Détection de doublon (§29) : même saison, mêmes équipes, même date.

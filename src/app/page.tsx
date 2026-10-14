@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { listTeams } from "@/lib/repositories/team";
+import { notFound } from "next/navigation";
+import { getTeam } from "@/lib/repositories/team";
+import { requireTeamSession } from "@/lib/auth/session";
 import { listSeasons } from "@/lib/repositories/season";
 import { getPlayerPointsForTeamSeason, getTeamMatchAggregateInputs } from "@/lib/repositories/teamAnalytics";
 import { summarizeTeamSeason } from "@/lib/stats/teamSeasonStats";
@@ -9,31 +11,18 @@ import { formatNumber, STAT_DECIMALS } from "@/lib/stats/format";
 import { TeamTrendCharts } from "@/app/equipe/TeamTrendCharts";
 
 export default async function Home() {
-  const [seasons, teams] = await Promise.all([listSeasons(), listTeams()]);
+  const { teamId } = await requireTeamSession();
+  const [seasons, ownTeam] = await Promise.all([listSeasons(teamId), getTeam(teamId, teamId)]);
+
+  if (!ownTeam) notFound();
 
   if (seasons.length === 0) {
     return (
       <div className="flex flex-col items-center gap-4 py-24 text-center">
         <h1 className="text-2xl font-semibold">Bienvenue sur StatsBasket</h1>
         <p className="max-w-md text-sm text-muted">
-          Commencez par créer une saison et votre équipe dans les Paramètres, puis ajoutez vos joueuses et vos
+          Commencez par créer une saison dans les Paramètres, puis ajoutez vos joueuses et vos
           matchs.
-        </p>
-        <Link href="/parametres">
-          <Button type="button">Aller aux Paramètres</Button>
-        </Link>
-      </div>
-    );
-  }
-
-  const ownTeam = teams.find((t) => t.isOwnTeam);
-
-  if (!ownTeam) {
-    return (
-      <div className="flex flex-col items-center gap-4 py-24 text-center">
-        <h1 className="text-2xl font-semibold">Bienvenue sur StatsBasket</h1>
-        <p className="max-w-md text-sm text-muted">
-          Aucune équipe n&apos;est marquée comme « Notre équipe ». Rendez-vous dans Paramètres pour le configurer.
         </p>
         <Link href="/parametres">
           <Button type="button">Aller aux Paramètres</Button>

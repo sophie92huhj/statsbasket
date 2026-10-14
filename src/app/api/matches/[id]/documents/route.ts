@@ -1,16 +1,25 @@
 import { NextResponse } from "next/server";
 import { createMatchDocument, listMatchDocuments } from "@/lib/repositories/matchDocument";
+import { ownsMatch } from "@/lib/repositories/scope";
+import { requireApiSession } from "@/lib/auth/session";
 
 const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15 Mo
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireApiSession();
+  if (auth instanceof NextResponse) return auth;
   const { id } = await params;
-  const documents = await listMatchDocuments(id);
+  const documents = await listMatchDocuments(auth.teamId, id);
   return NextResponse.json(documents);
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireApiSession({ admin: true });
+  if (auth instanceof NextResponse) return auth;
   const { id: matchId } = await params;
+  if (!(await ownsMatch(auth.teamId, matchId))) {
+    return NextResponse.json({ error: "Match introuvable" }, { status: 404 });
+  }
 
   const formData = await request.formData();
   const file = formData.get("file");

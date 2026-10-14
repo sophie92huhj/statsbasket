@@ -1,15 +1,21 @@
 import { NextResponse } from "next/server";
 import { getTeam } from "@/lib/repositories/team";
+import { requireApiSession } from "@/lib/auth/session";
 import { getSeason } from "@/lib/repositories/season";
 import { getPlayerPointsForTeamSeason, getTeamMatchAggregateInputs } from "@/lib/repositories/teamAnalytics";
 import { summarizeTeamSeason } from "@/lib/stats/teamSeasonStats";
 import { generateTeamStatsPdf } from "@/lib/export/teamStatsPdf";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireApiSession();
+  if (auth instanceof NextResponse) return auth;
   const { id } = await params;
   const seasonId = new URL(request.url).searchParams.get("saison") ?? undefined;
 
-  const [team, season] = await Promise.all([getTeam(id), seasonId ? getSeason(seasonId) : null]);
+  const [team, season] = await Promise.all([
+    id === auth.teamId ? getTeam(auth.teamId, id) : null,
+    seasonId ? getSeason(auth.teamId, seasonId) : null,
+  ]);
   if (!team) return NextResponse.json({ error: "Équipe introuvable" }, { status: 404 });
 
   const [matches, playerPoints] = await Promise.all([

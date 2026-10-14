@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { listTeams } from "@/lib/repositories/team";
+import { getTeam } from "@/lib/repositories/team";
+import { requireApiSession } from "@/lib/auth/session";
 import { getAppSettings } from "@/lib/repositories/appSettings";
 import { getSelectedMatchesData } from "@/lib/repositories/matchTotals";
 import { generateStatsTablePdf, type StatsTableColumn } from "@/lib/export/matchStatsPdf";
@@ -68,14 +69,15 @@ function rowValues(name: string, summary: PlayerSeasonSummary): Record<string, s
 }
 
 export async function GET(request: Request) {
+  const auth = await requireApiSession();
+  if (auth instanceof NextResponse) return auth;
   const matchIds = (new URL(request.url).searchParams.get("ids") ?? "").split(",").filter(Boolean);
   if (matchIds.length === 0) {
     return NextResponse.json({ error: "Aucun match sélectionné" }, { status: 400 });
   }
 
-  const [teams, appSettings] = await Promise.all([listTeams(), getAppSettings()]);
-  const ownTeam = teams.find((t) => t.isOwnTeam);
-  if (!ownTeam) return NextResponse.json({ error: "Aucune équipe marquée comme « Notre équipe »" }, { status: 400 });
+  const [ownTeam, appSettings] = await Promise.all([getTeam(auth.teamId, auth.teamId), getAppSettings(auth.teamId)]);
+  if (!ownTeam) return NextResponse.json({ error: "Équipe introuvable" }, { status: 404 });
 
   const { matches, players, opponentReboundsOff } = await getSelectedMatchesData(ownTeam.id, matchIds);
   if (matches.length === 0) return NextResponse.json({ error: "Matchs introuvables" }, { status: 404 });

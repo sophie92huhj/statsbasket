@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { Button, Label, Select, TextInput } from "@/components/ui/Form";
 import { apiFetch, ApiError } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/AuthContext";
-import type { Team } from "@prisma/client";
+import type { PublicTeam as Team } from "@/lib/repositories/team";
 
 function toDateInputValue(date: Date | string): string {
   return new Date(date).toISOString().slice(0, 10);

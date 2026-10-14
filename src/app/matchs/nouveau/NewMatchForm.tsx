@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/Card";
 import { Button, Label, Select, TextInput } from "@/components/ui/Form";
 import { apiFetch, ApiError } from "@/lib/api/client";
-import type { Season, Team } from "@prisma/client";
+import type { Season } from "@prisma/client";
+import type { PublicTeam as Team } from "@/lib/repositories/team";
 
 export function NewMatchForm({
   seasons,
@@ -14,7 +15,7 @@ export function NewMatchForm({
 }: {
   seasons: Season[];
   teams: Team[];
-  ownTeamId: string | null;
+  ownTeamId: string;
 }) {
   const router = useRouter();
   const [seasonId, setSeasonId] = useState(seasons[0]?.id ?? "");
@@ -31,10 +32,6 @@ export function NewMatchForm({
     e.preventDefault();
     setError(null);
 
-    if (!ownTeamId) {
-      setError("Aucune équipe n'est marquée comme « Notre équipe » dans Paramètres.");
-      return;
-    }
     const trimmedOpponentName = opponentName.trim();
     if (!trimmedOpponentName) {
       setError("Indiquez le nom de l'adversaire.");

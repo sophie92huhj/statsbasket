@@ -1,17 +1,20 @@
 import { NextResponse } from "next/server";
 import { getPlayer } from "@/lib/repositories/player";
+import { requireApiSession } from "@/lib/auth/session";
 import { getPlayerMatchLines } from "@/lib/repositories/playerAnalytics";
 import { summarizePlayerSeason } from "@/lib/stats/playerSeasonStats";
 import { generatePlayerStatsPdf } from "@/lib/export/playerStatsPdf";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireApiSession();
+  if (auth instanceof NextResponse) return auth;
   const { id } = await params;
   const seasonId = new URL(request.url).searchParams.get("saison") ?? undefined;
 
-  const player = await getPlayer(id);
+  const player = await getPlayer(auth.teamId, id);
   if (!player) return NextResponse.json({ error: "Joueuse introuvable" }, { status: 404 });
 
-  const lines = await getPlayerMatchLines(id, { seasonId });
+  const lines = await getPlayerMatchLines(id, { seasonId, teamId: auth.teamId });
   const summary = summarizePlayerSeason(lines);
 
   const subtitle = `${summary.gamesPlayed} match${summary.gamesPlayed > 1 ? "s" : ""} joué${summary.gamesPlayed > 1 ? "s" : ""}${

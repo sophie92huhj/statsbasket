@@ -1,4 +1,5 @@
-import { listTeams } from "@/lib/repositories/team";
+import { getTeam } from "@/lib/repositories/team";
+import { requireTeamSession } from "@/lib/auth/session";
 import { listSeasons } from "@/lib/repositories/season";
 import { getPlayerPointsForTeamSeason, getTeamMatchAggregateInputs } from "@/lib/repositories/teamAnalytics";
 import { splitTeamMatches, summarizeTeamSeason } from "@/lib/stats/teamSeasonStats";
@@ -8,7 +9,7 @@ import { Card, KpiCard } from "@/components/ui/Card";
 import { StatRow } from "@/components/stats/StatsTable";
 import { SeasonSelector } from "./SeasonSelector";
 import { TeamTrendCharts } from "./TeamTrendCharts";
-import { ComingSoon } from "@/components/ui/ComingSoon";
+import { notFound } from "next/navigation";
 
 function SummaryCard({ title, summary }: { title: string; summary: TeamSeasonSummary }) {
   return (
@@ -33,17 +34,9 @@ export default async function TeamPage({
   searchParams: Promise<{ saison?: string }>;
 }) {
   const { saison: seasonFilter } = await searchParams;
-  const [teams, seasons] = await Promise.all([listTeams(), listSeasons()]);
-  const ownTeam = teams.find((t) => t.isOwnTeam);
-
-  if (!ownTeam) {
-    return (
-      <ComingSoon
-        title="Équipe"
-        description="Aucune équipe n'est marquée comme « Notre équipe ». Rendez-vous dans Paramètres pour le configurer."
-      />
-    );
-  }
+  const { teamId } = await requireTeamSession();
+  const [ownTeam, seasons] = await Promise.all([getTeam(teamId, teamId), listSeasons(teamId)]);
+  if (!ownTeam) notFound();
 
   const [matches, playerPoints] = await Promise.all([
     getTeamMatchAggregateInputs(ownTeam.id, { seasonId: seasonFilter }),

@@ -45,12 +45,15 @@ function ThemeToggle() {
 
 export function MainNav() {
   const pathname = usePathname();
-  const { isAdmin } = useAuth();
+  const { isAdmin, teamName } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
+
+  // Page d'entrée et gestion des équipes : pas de navigation dans les stats d'une équipe.
+  if (!teamName || pathname.startsWith("/connexion") || pathname.startsWith("/gestion")) return null;
 
   const adminBadge = (
     <Link
@@ -72,8 +75,9 @@ export function MainNav() {
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent font-display text-base font-bold leading-none text-accent-foreground">
             SB
           </span>
-          <span className="font-display text-xl font-semibold leading-none tracking-wide">
-            StatsBasket
+          <span className="flex flex-col">
+            <span className="font-display text-xl font-semibold leading-none tracking-wide">StatsBasket</span>
+            <span className="text-xs leading-tight text-muted">{teamName}</span>
           </span>
         </Link>
 

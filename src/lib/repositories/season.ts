@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db/client";
+import { ownsSeason } from "./scope";
 
 export interface CreateSeasonInput {
   label: string;
@@ -6,22 +7,23 @@ export interface CreateSeasonInput {
   endDate: Date;
 }
 
-export function listSeasons() {
-  return prisma.season.findMany({ orderBy: { startDate: "desc" } });
+export function listSeasons(teamId: string) {
+  return prisma.season.findMany({ where: { teamId }, orderBy: { startDate: "desc" } });
 }
 
-export function getSeason(id: string) {
-  return prisma.season.findUnique({ where: { id } });
+export function getSeason(teamId: string, id: string) {
+  return prisma.season.findFirst({ where: { id, teamId } });
 }
 
-export function createSeason(input: CreateSeasonInput) {
-  return prisma.season.create({ data: input });
+export function createSeason(teamId: string, input: CreateSeasonInput) {
+  return prisma.season.create({ data: { ...input, teamId } });
 }
 
-export function updateSeason(id: string, input: Partial<CreateSeasonInput>) {
+export async function updateSeason(teamId: string, id: string, input: Partial<CreateSeasonInput>) {
+  if (!(await ownsSeason(teamId, id))) return null;
   return prisma.season.update({ where: { id }, data: input });
 }
 
-export function deleteSeason(id: string) {
-  return prisma.season.delete({ where: { id } });
+export async function deleteSeason(teamId: string, id: string): Promise<boolean> {
+  return (await prisma.season.deleteMany({ where: { id, teamId } })).count > 0;
 }

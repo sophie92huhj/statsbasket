@@ -1,4 +1,8 @@
 import { prisma } from "@/lib/db/client";
+import { matchesOfTeam } from "./scope";
+
+// Écritures : l'appelant vérifie que le match (ownsMatch), les joueuses (ownsPlayers) et
+// l'équipe (domicile/extérieur du match) appartiennent à l'équipe suivie.
 
 export interface PlayerMatchStatInput {
   matchId: string;
@@ -23,9 +27,9 @@ export interface PlayerMatchStatInput {
   officialPoints?: number | null;
 }
 
-export function listPlayerStatsForMatch(matchId: string) {
+export function listPlayerStatsForMatch(teamId: string, matchId: string) {
   return prisma.playerMatchStat.findMany({
-    where: { matchId },
+    where: { matchId, match: matchesOfTeam(teamId) },
     include: { player: true },
   });
 }
@@ -50,10 +54,6 @@ export function upsertPlayerMatchStatsBatch(inputs: PlayerMatchStatInput[]) {
       }),
     ),
   );
-}
-
-export function deletePlayerMatchStat(id: string) {
-  return prisma.playerMatchStat.delete({ where: { id } });
 }
 
 /** Retire des joueuses de la feuille de match (elles ne sont plus convoquées à ce match). */
@@ -81,8 +81,8 @@ export interface TeamMatchStatInput {
   foulsDrawn?: number | null;
 }
 
-export function listTeamStatsForMatch(matchId: string) {
-  return prisma.teamMatchStat.findMany({ where: { matchId }, include: { team: true } });
+export function listTeamStatsForMatch(teamId: string, matchId: string) {
+  return prisma.teamMatchStat.findMany({ where: { matchId, match: matchesOfTeam(teamId) }, include: { team: true } });
 }
 
 export function upsertTeamMatchStat(input: TeamMatchStatInput) {

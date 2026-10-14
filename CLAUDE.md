@@ -33,6 +33,12 @@ Application web d'analyse statistique de matchs de basket (saisie, stockage, cal
 6. **Percentages non calculables** (0 tentative) doivent afficher `—` ou `N/A`, jamais `0%`.
 7. **Temps de jeu** stocké en secondes (Int), jamais en minutes décimales, pour éviter les
    erreurs d'arrondi. Affichage toujours reformaté en `MM:SS`.
+8. **Cloisonnement par équipe suivie** : saisons, joueuses, adversaires et réglages
+   appartiennent à une équipe suivie (`teamId` / `ownerTeamId`) ; les matchs via
+   `homeTeamId`/`awayTeamId`. Toute page appelle `requireTeamSession()` et toute route API
+   `requireApiSession()` (`{ admin: true }` pour les écritures) — voir `src/lib/auth/session.ts`.
+   Les repositories prennent toujours le `teamId` de la session et filtrent avec
+   `src/lib/repositories/scope.ts`. Ne jamais lire un id venant du client sans ce filtre.
 
 ## Développement progressif (phases)
 

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getPlayer } from "@/lib/repositories/player";
+import { requireTeamSession } from "@/lib/auth/session";
 import { listTeamSeasons } from "@/lib/repositories/team";
 import { listSeasons } from "@/lib/repositories/season";
 import { getPlayerMatchLines } from "@/lib/repositories/playerAnalytics";
@@ -27,11 +28,12 @@ export default async function PlayerDetailPage({
   const { id } = await params;
   const { saison: seasonFilter } = await searchParams;
 
+  const { teamId } = await requireTeamSession();
   const [player, teamSeasons, seasons, lines] = await Promise.all([
-    getPlayer(id),
-    listTeamSeasons(),
-    listSeasons(),
-    getPlayerMatchLines(id, { seasonId: seasonFilter }),
+    getPlayer(teamId, id),
+    listTeamSeasons(teamId),
+    listSeasons(teamId),
+    getPlayerMatchLines(id, { seasonId: seasonFilter, teamId }),
   ]);
 
   if (!player) notFound();

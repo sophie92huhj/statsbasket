@@ -6,7 +6,8 @@ import { Card } from "@/components/ui/Card";
 import { Button, Label, Select, TextInput } from "@/components/ui/Form";
 import { apiFetch } from "@/lib/api/client";
 import { useAuth } from "@/lib/auth/AuthContext";
-import type { Season, Team } from "@prisma/client";
+import type { Season } from "@prisma/client";
+import type { PublicTeam as Team } from "@/lib/repositories/team";
 
 interface TeamSeasonRow {
   id: string;

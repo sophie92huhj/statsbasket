@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getMatch, computeMatchOutcome, computePointDifferential } from "@/lib/repositories/match";
 import { getAppSettings } from "@/lib/repositories/appSettings";
+import { requireApiSession } from "@/lib/auth/session";
 import { generateMatchStatsPdf } from "@/lib/export/matchStatsPdf";
 import {
   computeDefensiveReboundRatio,
@@ -17,8 +18,10 @@ function formatDate(date: Date): string {
 }
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireApiSession();
+  if (auth instanceof NextResponse) return auth;
   const { id } = await params;
-  const [match, appSettings] = await Promise.all([getMatch(id), getAppSettings()]);
+  const [match, appSettings] = await Promise.all([getMatch(auth.teamId, id), getAppSettings(auth.teamId)]);
   if (!match) return NextResponse.json({ error: "Match introuvable" }, { status: 404 });
 
   const opponent = match.isHome ? match.awayTeam : match.homeTeam;

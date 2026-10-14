@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db/client";
+import { ownsPlayer } from "./scope";
 
 export interface CreatePlayerInput {
   firstName: string;
@@ -6,23 +7,26 @@ export interface CreatePlayerInput {
   birthDate?: Date | null;
 }
 
-export function listPlayers(search?: string) {
+export function listPlayers(teamId: string, search?: string) {
   return prisma.player.findMany({
-    where: search
-      ? {
-          OR: [
-            { firstName: { contains: search, mode: "insensitive" } },
-            { lastName: { contains: search, mode: "insensitive" } },
-          ],
-        }
-      : undefined,
+    where: {
+      teamId,
+      ...(search
+        ? {
+            OR: [
+              { firstName: { contains: search, mode: "insensitive" } },
+              { lastName: { contains: search, mode: "insensitive" } },
+            ],
+          }
+        : {}),
+    },
     orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
   });
 }
 
-export function getPlayer(id: string) {
-  return prisma.player.findUnique({
-    where: { id },
+export function getPlayer(teamId: string, id: string) {
+  return prisma.player.findFirst({
+    where: { id, teamId },
     include: {
       rosterEntries: {
         include: { teamSeason: { include: { team: true, season: true } } },
@@ -32,14 +36,15 @@ export function getPlayer(id: string) {
   });
 }
 
-export function createPlayer(input: CreatePlayerInput) {
-  return prisma.player.create({ data: input });
+export function createPlayer(teamId: string, input: CreatePlayerInput) {
+  return prisma.player.create({ data: { ...input, teamId } });
 }
 
-export function updatePlayer(id: string, input: Partial<CreatePlayerInput>) {
+export async function updatePlayer(teamId: string, id: string, input: Partial<CreatePlayerInput>) {
+  if (!(await ownsPlayer(teamId, id))) return null;
   return prisma.player.update({ where: { id }, data: input });
 }
 
-export function deletePlayer(id: string) {
-  return prisma.player.delete({ where: { id } });
+export async function deletePlayer(teamId: string, id: string): Promise<boolean> {
+  return (await prisma.player.deleteMany({ where: { id, teamId } })).count > 0;
 }

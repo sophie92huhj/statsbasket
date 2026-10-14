@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { requireApiSession } from "@/lib/auth/session";
 import { createPlayer, listPlayers } from "@/lib/repositories/player";
 
 const createPlayerSchema = z.object({
@@ -9,17 +10,21 @@ const createPlayerSchema = z.object({
 });
 
 export async function GET(request: Request) {
+  const auth = await requireApiSession();
+  if (auth instanceof NextResponse) return auth;
   const search = new URL(request.url).searchParams.get("q") ?? undefined;
-  const players = await listPlayers(search);
+  const players = await listPlayers(auth.teamId, search);
   return NextResponse.json(players);
 }
 
 export async function POST(request: Request) {
+  const auth = await requireApiSession({ admin: true });
+  if (auth instanceof NextResponse) return auth;
   const body = await request.json();
   const parsed = createPlayerSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
-  const player = await createPlayer(parsed.data);
+  const player = await createPlayer(auth.teamId, parsed.data);
   return NextResponse.json(player, { status: 201 });
 }

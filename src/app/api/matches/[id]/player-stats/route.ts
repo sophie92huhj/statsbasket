@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { requireApiSession } from "@/lib/auth/session";
+import { ownsMatch, ownsPlayers } from "@/lib/repositories/scope";
 import {
   listPlayerStatsForMatch,
   removePlayersFromMatch,
@@ -38,12 +40,16 @@ const batchSchema = z.object({
 });
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireApiSession();
+  if (auth instanceof NextResponse) return auth;
   const { id } = await params;
-  const stats = await listPlayerStatsForMatch(id);
+  const stats = await listPlayerStatsForMatch(auth.teamId, id);
   return NextResponse.json(stats);
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireApiSession({ admin: true });
+  if (auth instanceof NextResponse) return auth;
   const { id: matchId } = await params;
   const body = await request.json();
   const parsed = batchSchema.safeParse(body);
@@ -52,6 +58,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   }
 
   const { lines, force, removePlayerIds } = parsed.data;
+
+  const [matchOk, playersOk] = await Promise.all([
+    ownsMatch(auth.teamId, matchId),
+    ownsPlayers(auth.teamId, lines.map((l) => l.playerId)),
+  ]);
+  if (!matchOk || !playersOk) {
+    return NextResponse.json({ error: "Match ou joueuse introuvable" }, { status: 404 });
+  }
 
   const duplicates = findDuplicatePlayers(lines.map((l) => l.playerId));
   if (duplicates.length > 0) {

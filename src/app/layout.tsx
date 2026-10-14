@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Barlow_Condensed } from "next/font/google";
 import { MainNav } from "@/components/nav/MainNav";
 import { AuthProvider } from "@/lib/auth/AuthContext";
+import { getSession } from "@/lib/auth/session";
+import { getTrackedTeam } from "@/lib/repositories/trackedTeam";
 import { ThemeScript } from "@/components/ThemeScript";
 import "./globals.css";
 
@@ -30,7 +32,10 @@ export const metadata: Metadata = {
   description: "Analyse statistique de matchs de basket",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const session = await getSession();
+  const team = session?.teamId ? await getTrackedTeam(session.teamId) : null;
+
   return (
     <html
       lang="fr"
@@ -41,7 +46,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <ThemeScript />
       </head>
       <body className="min-h-full flex flex-col">
-        <AuthProvider>
+        <AuthProvider isAdmin={session?.isAdmin ?? false} teamName={team?.name ?? null}>
           <MainNav />
           <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6">{children}</main>
         </AuthProvider>

@@ -1,4 +1,5 @@
 import { listMatches } from "@/lib/repositories/match";
+import { requireTeamSession } from "@/lib/auth/session";
 import { computeMatchOutcome, computePointDifferential } from "@/lib/repositories/match";
 import { Card } from "@/components/ui/Card";
 import { NewMatchButton } from "./NewMatchButton";
@@ -10,7 +11,8 @@ function formatDate(date: Date): string {
 }
 
 export default async function MatchesPage() {
-  const matches = await listMatches();
+  const { teamId } = await requireTeamSession();
+  const matches = await listMatches(teamId);
 
   return (
     <div className="flex flex-col gap-6">

@@ -19,29 +19,43 @@ datasource db {
 
 model Season {
   id        String   @id @default(cuid())
+  teamId    String   // équipe suivie propriétaire (cloisonnement entre équipes)
   label     String   // ex: "2025-2026"
   startDate DateTime
   endDate   DateTime
   createdAt DateTime @default(now())
 
+  team        Team         @relation("OwnedSeasons", fields: [teamId], references: [id], onDelete: Cascade)
   teamSeasons TeamSeason[]
   matches     Match[]
 
-  @@unique([label])
+  @@unique([teamId, label])
 }
 
+// Deux sortes d'équipes :
+// - équipe suivie (isOwnTeam = true) : accès protégé par mot de passe, possède ses saisons,
+//   joueuses, adversaires et réglages ; ownerTeamId = null.
+// - adversaire (isOwnTeam = false) : appartient à une équipe suivie (ownerTeamId), invisible
+//   des autres équipes suivies.
 model Team {
-  id        String   @id @default(cuid())
-  name      String
-  isOwnTeam Boolean  @default(false) // true = notre équipe suivie ; false = adversaire connu
-  createdAt DateTime @default(now())
+  id                 String   @id @default(cuid())
+  name               String
+  isOwnTeam          Boolean  @default(false)
+  ownerTeamId        String?
+  accessPasswordHash String?  // équipes suivies uniquement ; null = accès admin seulement
+  createdAt          DateTime @default(now())
 
+  ownerTeam       Team?           @relation("OwnedOpponents", fields: [ownerTeamId], references: [id], onDelete: Cascade)
+  opponents       Team[]          @relation("OwnedOpponents")
+  seasons         Season[]        @relation("OwnedSeasons")
+  players         Player[]
+  settings        AppSettings?
   teamSeasons     TeamSeason[]
   matchesAsHome   Match[]      @relation("HomeTeam")
   matchesAsAway   Match[]      @relation("AwayTeam")
   teamMatchStats  TeamMatchStat[]
 
-  @@unique([name])
+  @@unique([ownerTeamId, name])
 }
 
 // Rattache une équipe à une saison (catégorie, championnat, coach) sans dupliquer l'équipe.
@@ -63,15 +77,17 @@ model TeamSeason {
 
 model Player {
   id         String   @id @default(cuid())
+  teamId     String   // équipe suivie propriétaire (cloisonnement entre équipes)
   firstName  String
   lastName   String
   birthDate  DateTime?
   createdAt  DateTime @default(now())
 
+  team             Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
   rosterEntries    PlayerTeamSeason[]
   playerMatchStats PlayerMatchStat[]
 
-  @@index([lastName, firstName])
+  @@index([teamId, lastName, firstName])
 }
 
 // Rattache une joueuse à une équipe pour une saison donnée : statut.
@@ -229,13 +245,14 @@ model TeamMatchStat {
 }
 
 // ---------------------------------------------------------------------------
-// Paramètres de l'application (ligne unique / singleton)
+// Paramètres de l'application (une ligne par équipe suivie)
 // ---------------------------------------------------------------------------
 
-// Objectifs de performance affichés sous forme de code couleur sur les pages
-// de match. Ligne unique (id fixe) : pas de notion de saison ou d'équipe ici.
+// Objectifs de performance affichés sous forme de code couleur sur les pages de match.
 model AppSettings {
-  id String @id @default("singleton")
+  id     String @id @default(cuid())
+  teamId String @unique
+  team   Team   @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
   // Seuil au-dessus duquel le ratio de rebonds offensifs est considéré atteint (0-100).
   offensiveReboundTarget Float @default(50)

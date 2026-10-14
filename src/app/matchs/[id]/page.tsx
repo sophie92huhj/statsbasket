@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { getMatch, computeMatchOutcome, computePointDifferential } from "@/lib/repositories/match";
 import { listTeams } from "@/lib/repositories/team";
+import { requireTeamSession } from "@/lib/auth/session";
 import { listMatchDocuments } from "@/lib/repositories/matchDocument";
 import { getAppSettings } from "@/lib/repositories/appSettings";
 import { prisma } from "@/lib/db/client";
@@ -27,11 +28,12 @@ function formatDate(date: Date): string {
 
 export default async function MatchDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const { teamId } = await requireTeamSession();
   const [match, teams, documents, appSettings] = await Promise.all([
-    getMatch(id),
-    listTeams(),
-    listMatchDocuments(id),
-    getAppSettings(),
+    getMatch(teamId, id),
+    listTeams(teamId),
+    listMatchDocuments(teamId, id),
+    getAppSettings(teamId),
   ]);
   if (!match) notFound();
 

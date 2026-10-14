@@ -1,15 +1,16 @@
 import { prisma } from "@/lib/db/client";
+import { matchesOfTeam } from "./scope";
 
-export function listMatchDocuments(matchId: string) {
+export function listMatchDocuments(teamId: string, matchId: string) {
   return prisma.matchDocument.findMany({
-    where: { matchId },
+    where: { matchId, match: matchesOfTeam(teamId) },
     select: { id: true, fileName: true, contentType: true, fileSize: true, createdAt: true },
     orderBy: { createdAt: "desc" },
   });
 }
 
-export function getMatchDocument(id: string) {
-  return prisma.matchDocument.findUnique({ where: { id } });
+export function getMatchDocument(teamId: string, matchId: string, id: string) {
+  return prisma.matchDocument.findFirst({ where: { id, matchId, match: matchesOfTeam(teamId) } });
 }
 
 export interface CreateMatchDocumentInput {
@@ -20,10 +21,11 @@ export interface CreateMatchDocumentInput {
   data: Uint8Array<ArrayBuffer>;
 }
 
+/** Le match doit appartenir à l'équipe (vérifié par l'appelant via ownsMatch). */
 export function createMatchDocument(input: CreateMatchDocumentInput) {
   return prisma.matchDocument.create({ data: input });
 }
 
-export function deleteMatchDocument(id: string) {
-  return prisma.matchDocument.delete({ where: { id } });
+export async function deleteMatchDocument(teamId: string, matchId: string, id: string): Promise<boolean> {
+  return (await prisma.matchDocument.deleteMany({ where: { id, matchId, match: matchesOfTeam(teamId) } })).count > 0;
 }

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db/client";
+import { matchesOfTeam, ownsMatch, ownsOpponent, ownsSeason } from "./scope";
 
 export interface CreateMatchInput {
   seasonId: string;
@@ -17,17 +18,17 @@ export interface CreateMatchInput {
   maxPointDifferentialDisadvantage?: number | null;
 }
 
-export function listMatches(seasonId?: string) {
+export function listMatches(teamId: string, seasonId?: string) {
   return prisma.match.findMany({
-    where: seasonId ? { seasonId } : undefined,
+    where: { ...matchesOfTeam(teamId), seasonId },
     include: { homeTeam: true, awayTeam: true, season: true },
     orderBy: { date: "desc" },
   });
 }
 
-export function getMatch(id: string) {
-  return prisma.match.findUnique({
-    where: { id },
+export function getMatch(teamId: string, id: string) {
+  return prisma.match.findFirst({
+    where: { AND: [{ id }, matchesOfTeam(teamId)] },
     include: {
       homeTeam: true,
       awayTeam: true,
@@ -38,16 +39,34 @@ export function getMatch(id: string) {
   });
 }
 
+/**
+ * Vérifie qu'un match ne référence que des données de l'équipe suivie : une de ses saisons,
+ * l'équipe elle-même d'un côté et un de ses adversaires de l'autre.
+ */
+export async function matchReferencesBelongToTeam(
+  teamId: string,
+  refs: { seasonId: string; homeTeamId: string; awayTeamId: string },
+): Promise<boolean> {
+  const opponentId =
+    refs.homeTeamId === teamId ? refs.awayTeamId : refs.awayTeamId === teamId ? refs.homeTeamId : null;
+  if (!opponentId) return false;
+  const [seasonOk, opponentOk] = await Promise.all([ownsSeason(teamId, refs.seasonId), ownsOpponent(teamId, opponentId)]);
+  return seasonOk && opponentOk;
+}
+
+/** Les références doivent avoir été vérifiées avec matchReferencesBelongToTeam. */
 export function createMatch(input: CreateMatchInput) {
   return prisma.match.create({ data: input });
 }
 
-export function updateMatch(id: string, input: Partial<CreateMatchInput>) {
+/** Les références modifiées doivent avoir été vérifiées avec matchReferencesBelongToTeam. */
+export async function updateMatch(teamId: string, id: string, input: Partial<CreateMatchInput>) {
+  if (!(await ownsMatch(teamId, id))) return null;
   return prisma.match.update({ where: { id }, data: input });
 }
 
-export function deleteMatch(id: string) {
-  return prisma.match.delete({ where: { id } });
+export async function deleteMatch(teamId: string, id: string): Promise<boolean> {
+  return (await prisma.match.deleteMany({ where: { AND: [{ id }, matchesOfTeam(teamId)] } })).count > 0;
 }
 
 /** Résultat d'un match du point de vue de "notre" équipe (§4). Null si score(s) non renseigné. */

@@ -1,11 +1,9 @@
 import { prisma } from "@/lib/db/client";
 
-const SETTINGS_ID = "singleton";
-
-export function getAppSettings() {
+export function getAppSettings(teamId: string) {
   return prisma.appSettings.upsert({
-    where: { id: SETTINGS_ID },
-    create: { id: SETTINGS_ID },
+    where: { teamId },
+    create: { teamId },
     update: {},
   });
 }
@@ -15,10 +13,10 @@ export interface UpdateAppSettingsInput {
   turnoverRatioTarget?: number;
 }
 
-export function updateAppSettings(input: UpdateAppSettingsInput) {
+export function updateAppSettings(teamId: string, input: UpdateAppSettingsInput) {
   return prisma.appSettings.upsert({
-    where: { id: SETTINGS_ID },
-    create: { id: SETTINGS_ID, ...input },
+    where: { teamId },
+    create: { teamId, ...input },
     update: input,
   });
 }
