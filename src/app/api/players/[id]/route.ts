@@ -9,7 +9,7 @@ const updatePlayerSchema = z.object({
   birthDate: z.coerce.date().nullish(),
 });
 
-const NOT_FOUND = { error: "Joueuse introuvable" };
+const NOT_FOUND = { error: "Joueur introuvable" };
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireApiSession();

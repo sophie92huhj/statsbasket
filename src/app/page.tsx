@@ -21,7 +21,7 @@ export default async function Home() {
       <div className="flex flex-col items-center gap-4 py-24 text-center">
         <h1 className="text-2xl font-semibold">Bienvenue sur StatsBasket</h1>
         <p className="max-w-md text-sm text-muted">
-          Commencez par créer une saison dans les Paramètres, puis ajoutez vos joueuses et vos
+          Commencez par créer une saison dans les Paramètres, puis ajoutez vos joueurs et vos
           matchs.
         </p>
         <Link href="/parametres">

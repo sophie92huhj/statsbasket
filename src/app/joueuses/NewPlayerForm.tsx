@@ -45,7 +45,7 @@ export function NewPlayerForm() {
           <TextInput value={lastName} onChange={(e) => setLastName(e.target.value)} required />
         </div>
         <Button type="submit" disabled={submitting}>
-          Ajouter une joueuse
+          Ajouter un joueur
         </Button>
       </form>
       {error && <p className="mt-2 text-sm text-loss">{error}</p>}

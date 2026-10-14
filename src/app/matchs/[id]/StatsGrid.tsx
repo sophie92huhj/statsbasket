@@ -401,7 +401,7 @@ export function StatsGrid({
         ))}
         {roster.length === 0 && (
           <p className="col-span-full text-sm text-muted">
-            Aucune joueuse dans l&apos;effectif de cette équipe/saison. Rattachez des joueuses depuis leur page.
+            Aucun joueur dans l&apos;effectif de cette équipe/saison. Rattachez des joueurs depuis leur page.
           </p>
         )}
       </div>
@@ -419,8 +419,8 @@ export function StatsGrid({
     <div className="flex items-center justify-between">
       <p className="text-sm text-muted">
         {calledUpPlayerIds.size > 0
-          ? `${calledUpPlayerIds.size} joueuse${calledUpPlayerIds.size > 1 ? "s" : ""} sur la feuille de match.`
-          : "Aucune joueuse sélectionnée pour ce match."}
+          ? `${calledUpPlayerIds.size} joueur${calledUpPlayerIds.size > 1 ? "s" : ""} sur la feuille de match.`
+          : "Aucun joueur sélectionné pour ce match."}
       </p>
       {isAdmin && (
         <Button type="button" variant="secondary" onClick={() => setEditingRoster(true)}>
@@ -457,7 +457,7 @@ export function StatsGrid({
             <thead>
               <tr className="border-b border-border text-left text-xs font-semibold uppercase tracking-wide text-muted">
                 <th className="sticky left-0 z-10 w-14 bg-surface px-3 py-3 text-center">N°</th>
-                <th className="px-3 py-3">Joueuse</th>
+                <th className="px-3 py-3">Joueur</th>
                 <th className="px-3 py-3 text-center">5 de départ</th>
                 <th className="px-3 py-3 text-center">MIN</th>
                 <th className="px-3 py-3 text-center">PTS</th>

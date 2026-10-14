@@ -64,13 +64,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     ownsPlayers(auth.teamId, lines.map((l) => l.playerId)),
   ]);
   if (!matchOk || !playersOk) {
-    return NextResponse.json({ error: "Match ou joueuse introuvable" }, { status: 404 });
+    return NextResponse.json({ error: "Match ou joueur introuvable" }, { status: 404 });
   }
 
   const duplicates = findDuplicatePlayers(lines.map((l) => l.playerId));
   if (duplicates.length > 0) {
     return NextResponse.json(
-      { error: "Doublon de joueuse détecté dans la saisie.", duplicatePlayerIds: duplicates },
+      { error: "Doublon de joueur détecté dans la saisie.", duplicatePlayerIds: duplicates },
       { status: 400 },
     );
   }

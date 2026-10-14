@@ -12,7 +12,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const seasonId = new URL(request.url).searchParams.get("saison") ?? undefined;
 
   const player = await getPlayer(auth.teamId, id);
-  if (!player) return NextResponse.json({ error: "Joueuse introuvable" }, { status: 404 });
+  if (!player) return NextResponse.json({ error: "Joueur introuvable" }, { status: 404 });
 
   const lines = await getPlayerMatchLines(id, { seasonId, teamId: auth.teamId });
   const summary = summarizePlayerSeason(lines);

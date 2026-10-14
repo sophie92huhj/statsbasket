@@ -15,7 +15,7 @@ import { formatMadeAttempted, formatNumber, formatPct, formatSecondsAsClock, STA
 
 // Pas de colonne N° : le numéro d'une joueuse peut changer d'un match à l'autre.
 const COLUMNS = [
-  { key: "name", label: "Joueuse", width: 130, align: "left" },
+  { key: "name", label: "Joueur", width: 130, align: "left" },
   { key: "gp", label: "MJ", width: 32, align: "center" },
   { key: "min", label: "MIN", width: 46, align: "center" },
   { key: "pts", label: "PTS", width: 40, align: "center" },

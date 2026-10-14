@@ -60,7 +60,7 @@ export function validatePlayerStatLine(line: RawPlayerStatLine): ValidationIssue
       issues.push({
         field: "dnp",
         severity: "warning",
-        message: "Joueuse marquée comme n'ayant pas joué (DNP) mais des statistiques sont renseignées.",
+        message: "Joueur marqué comme n'ayant pas joué (DNP) mais des statistiques sont renseignées.",
       });
     }
     return issues;

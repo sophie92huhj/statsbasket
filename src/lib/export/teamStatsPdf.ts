@@ -122,7 +122,7 @@ export async function generateTeamStatsPdf(input: TeamStatsPdfInput): Promise<Ui
   if (hasBars) {
     pdf.ensureSpace(chartHeight);
     pdf.drawBarChart(
-      { title: "Points par joueuse (moyenne / match)", color: CHART_COLORS[0], bars },
+      { title: "Points par joueur (moyenne / match)", color: CHART_COLORS[0], bars },
       MARGIN,
       CONTENT_WIDTH,
       chartHeight,

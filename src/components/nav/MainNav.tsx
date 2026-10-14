@@ -10,7 +10,7 @@ import { useTheme } from "@/lib/theme/useTheme";
 const NAV_ITEMS = [
   { href: "/", label: "Dashboard" },
   { href: "/matchs", label: "Matchs" },
-  { href: "/joueuses", label: "Joueuses" },
+  { href: "/joueuses", label: "Joueurs" },
   { href: "/equipe", label: "Équipe" },
   { href: "/parametres", label: "Paramètres" },
 ] as const;

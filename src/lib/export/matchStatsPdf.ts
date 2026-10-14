@@ -54,7 +54,7 @@ export interface StatsTablePdfInput {
 // pour que l'export PDF soit identique à l'interface.
 const COLUMNS = [
   { key: "num", label: "N°", width: 28, align: "center" },
-  { key: "name", label: "Joueuse", width: 175, align: "left" },
+  { key: "name", label: "Joueur", width: 175, align: "left" },
   { key: "starter", label: "5D", width: 32, align: "center" },
   { key: "min", label: "MIN", width: 46, align: "center" },
   { key: "pts", label: "PTS", width: 38, align: "center" },

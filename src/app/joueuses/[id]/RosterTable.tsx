@@ -37,7 +37,7 @@ export function RosterTable({ entries }: { entries: RosterEntry[] }) {
           {entries.length === 0 && (
             <tr>
               <td colSpan={3} className="px-4 py-6 text-center text-muted">
-                Pas encore rattachée à une équipe.
+                Pas encore rattaché à une équipe.
               </td>
             </tr>
           )}

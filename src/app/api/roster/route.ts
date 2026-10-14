@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
   const entry = await upsertRosterEntry(auth.teamId, parsed.data);
-  if (!entry) return NextResponse.json({ error: "Joueuse ou équipe/saison introuvable" }, { status: 404 });
+  if (!entry) return NextResponse.json({ error: "Joueur ou équipe/saison introuvable" }, { status: 404 });
   return NextResponse.json(entry, { status: 201 });
 }
 
